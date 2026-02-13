@@ -70,6 +70,24 @@ CREATE TABLE IF NOT EXISTS activities (
   timestamp TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS api_keys (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+  key_hash TEXT NOT NULL,
+  key_prefix TEXT NOT NULL,
+  label TEXT NOT NULL DEFAULT 'default',
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_agent ON api_keys(agent_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active) WHERE is_active = true;
+
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read access on api_keys" ON api_keys FOR SELECT USING (true);
+CREATE POLICY "Service role full access on api_keys" ON api_keys FOR ALL USING (auth.role() = 'service_role');
+
 CREATE INDEX IF NOT EXISTS idx_markets_category ON markets(category);
 CREATE INDEX IF NOT EXISTS idx_markets_status ON markets(status);
 CREATE INDEX IF NOT EXISTS idx_markets_creator ON markets(creator_id);

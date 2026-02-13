@@ -6,6 +6,7 @@ import {
   createActivity,
   getAgentById,
 } from "@/lib/db";
+import { authenticateAgent, isAuthError } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -42,7 +43,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, description, category, outcomes, resolutionDate, tags, creatorId } = body;
+    const { title, description, category, outcomes, resolutionDate, tags } = body;
+    let creatorId = body.creatorId as string | undefined;
+
+    const authResult = await authenticateAgent(request);
+    if (isAuthError(authResult)) {
+      if (!creatorId) {
+        return authResult;
+      }
+    } else {
+      creatorId = authResult.agentId;
+    }
 
     if (!title || !description || !category || !resolutionDate || !creatorId) {
       return NextResponse.json(

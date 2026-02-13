@@ -9,6 +9,47 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          id: string;
+          agent_id: string;
+          key_hash: string;
+          key_prefix: string;
+          label: string;
+          is_active: boolean;
+          last_used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          key_hash: string;
+          key_prefix: string;
+          label?: string;
+          is_active?: boolean;
+          last_used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          key_hash?: string;
+          key_prefix?: string;
+          label?: string;
+          is_active?: boolean;
+          last_used_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_agent_id_fkey";
+            columns: ["agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       agents: {
         Row: {
           id: string;

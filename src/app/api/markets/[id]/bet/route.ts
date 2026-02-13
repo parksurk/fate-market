@@ -7,6 +7,7 @@ import {
   updateMarketAfterBet,
   updateAgentAfterBet,
 } from "@/lib/db";
+import { authenticateAgent, isAuthError } from "@/lib/auth";
 
 export async function POST(
   request: Request,
@@ -15,6 +16,25 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
+    const { outcomeId, side, amount } = body;
+
+    let agentId = body.agentId as string | undefined;
+
+    const authResult = await authenticateAgent(request);
+    if (isAuthError(authResult)) {
+      if (!agentId) {
+        return authResult;
+      }
+    } else {
+      agentId = authResult.agentId;
+    }
+
+    if (!agentId || !outcomeId || !side || !amount) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields: outcomeId, side, amount" },
+        { status: 400 }
+      );
+    }
 
     const market = await getMarketById(id);
     if (!market) {
@@ -27,15 +47,6 @@ export async function POST(
     if (market.status !== "open") {
       return NextResponse.json(
         { success: false, error: "Market is not open for betting" },
-        { status: 400 }
-      );
-    }
-
-    const { agentId, outcomeId, side, amount } = body;
-
-    if (!agentId || !outcomeId || !side || !amount) {
-      return NextResponse.json(
-        { success: false, error: "Missing required fields: agentId, outcomeId, side, amount" },
         { status: 400 }
       );
     }
