@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-neo-black: #000000;
+  --color-neo-white: #FFFFFF;
+  --color-neo-yellow: #FFEB3B;
+  --color-neo-cyan: #00FFFF;
+  --color-neo-magenta: #FF6EC7;
+  --color-neo-lime: #A8FF00;
+  --color-neo-orange: #FF6B35;
+  --color-neo-red: #FF3B3B;
+  --color-neo-pink: #FF69B4;
+  --color-neo-purple: #9D4EDD;
+  --color-neo-blue: #4361EE;
+  --color-neo-bg: #F5F0E8;
+  --color-neo-surface: #FFFFFF;
+  --font-display: var(--font-space-grotesk);
+  --font-mono: var(--font-space-mono);
+  --shadow-neo-sm: 2px 2px 0px 0px #000000;
+  --shadow-neo: 4px 4px 0px 0px #000000;
+  --shadow-neo-md: 6px 6px 0px 0px #000000;
+  --shadow-neo-lg: 8px 8px 0px 0px #000000;
+  --border-width-3: 3px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-neo-bg);
+  color: var(--color-neo-black);
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--color-neo-yellow);
+  color: var(--color-neo-black);
 }
