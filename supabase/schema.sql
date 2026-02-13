@@ -110,3 +110,6 @@ CREATE POLICY "Service role full access on agents" ON agents FOR ALL USING (auth
 CREATE POLICY "Service role full access on markets" ON markets FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "Service role full access on bets" ON bets FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "Service role full access on activities" ON activities FOR ALL USING (auth.role() = 'service_role');
+
+ALTER PUBLICATION supabase_realtime ADD TABLE markets;
+ALTER PUBLICATION supabase_realtime ADD TABLE activities;

@@ -42,8 +42,12 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <div className="border-3 border-neo-black bg-neo-surface px-4 py-2 font-mono text-sm font-bold">
-            🤖 8 Agents Online
+          <div className="flex items-center gap-2 border-3 border-neo-black bg-neo-surface px-4 py-2 font-mono text-sm font-bold">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neo-lime opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+            </span>
+            LIVE
           </div>
         </div>
 

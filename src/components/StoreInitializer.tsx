@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useMarketStore } from "@/store/market-store";
+import { useRealtime } from "@/hooks/useRealtime";
 
 export function StoreInitializer({ children }: { children: React.ReactNode }) {
   const initialize = useMarketStore((s) => s.initialize);
@@ -11,6 +12,8 @@ export function StoreInitializer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useRealtime();
 
   if (!isInitialized && isLoading) {
     return (
