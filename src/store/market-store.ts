@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
 import {
   type Agent,
   type Market,
@@ -7,15 +6,7 @@ import {
   type MarketActivity,
   type MarketCategory,
   type MarketStatus,
-  type CreateMarketPayload,
-  type PlaceBetPayload,
 } from "@/types";
-import {
-  MOCK_AGENTS,
-  MOCK_MARKETS,
-  MOCK_BETS,
-  MOCK_ACTIVITIES,
-} from "@/lib/mock-data";
 
 type SortOption = "trending" | "newest" | "volume" | "ending-soon";
 
@@ -24,6 +15,8 @@ interface MarketStore {
   markets: Market[];
   bets: Bet[];
   activities: MarketActivity[];
+  isLoading: boolean;
+  isInitialized: boolean;
 
   selectedCategory: MarketCategory | "all";
   selectedStatus: MarketStatus | "all";
@@ -35,6 +28,10 @@ interface MarketStore {
   setSortBy: (sort: SortOption) => void;
   setSearchQuery: (q: string) => void;
 
+  initialize: () => Promise<void>;
+  refreshMarkets: () => Promise<void>;
+  refreshAgents: () => Promise<void>;
+
   getFilteredMarkets: () => Market[];
   getMarketById: (id: string) => Market | undefined;
   getAgentById: (id: string) => Agent | undefined;
@@ -43,15 +40,37 @@ interface MarketStore {
   getActivitiesByMarket: (marketId: string) => MarketActivity[];
   getLeaderboard: () => Agent[];
 
-  createMarket: (payload: CreateMarketPayload, creatorId: string) => Market;
-  placeBet: (payload: PlaceBetPayload, agentId: string) => Bet;
+  createMarket: (payload: {
+    title: string;
+    description: string;
+    category: MarketCategory;
+    outcomes: { label: string }[];
+    resolutionDate: string;
+    tags: string[];
+  }, creatorId: string) => Promise<Market>;
+
+  placeBet: (payload: {
+    marketId: string;
+    outcomeId: string;
+    side: "yes" | "no";
+    amount: number;
+  }, agentId: string) => Promise<Bet>;
+}
+
+async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error ?? "API error");
+  return json.data;
 }
 
 export const useMarketStore = create<MarketStore>((set, get) => ({
-  agents: MOCK_AGENTS,
-  markets: MOCK_MARKETS,
-  bets: MOCK_BETS,
-  activities: MOCK_ACTIVITIES,
+  agents: [],
+  markets: [],
+  bets: [],
+  activities: [],
+  isLoading: false,
+  isInitialized: false,
 
   selectedCategory: "all",
   selectedStatus: "all",
@@ -62,6 +81,41 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
   setStatus: (status) => set({ selectedStatus: status }),
   setSortBy: (sort) => set({ sortBy: sort }),
   setSearchQuery: (q) => set({ searchQuery: q }),
+
+  initialize: async () => {
+    if (get().isInitialized) return;
+    set({ isLoading: true });
+    try {
+      const [agents, markets, activities] = await Promise.all([
+        apiFetch<Agent[]>("/api/agents"),
+        apiFetch<Market[]>("/api/markets"),
+        apiFetch<MarketActivity[]>("/api/activities?limit=50"),
+      ]);
+      set({ agents, markets, activities, isInitialized: true });
+    } catch (err) {
+      console.error("Failed to initialize store:", err);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  refreshMarkets: async () => {
+    try {
+      const markets = await apiFetch<Market[]>("/api/markets");
+      set({ markets });
+    } catch (err) {
+      console.error("Failed to refresh markets:", err);
+    }
+  },
+
+  refreshAgents: async () => {
+    try {
+      const agents = await apiFetch<Agent[]>("/api/agents");
+      set({ agents });
+    } catch (err) {
+      console.error("Failed to refresh agents:", err);
+    }
+  },
 
   getFilteredMarkets: () => {
     const { markets, selectedCategory, selectedStatus, sortBy, searchQuery } =
@@ -125,121 +179,48 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
     return [...agents].sort((a, b) => b.profitLoss - a.profitLoss);
   },
 
-  createMarket: (payload, creatorId) => {
-    const creator = get().agents.find((a) => a.id === creatorId);
-    const now = new Date().toISOString();
-    const market: Market = {
-      id: `market-${uuidv4().slice(0, 8)}`,
-      title: payload.title,
-      description: payload.description,
-      category: payload.category,
-      creatorId,
-      creatorName: creator?.displayName ?? "Unknown Agent",
-      status: "open",
-      outcomes: payload.outcomes.map((o, i) => ({
-        id: `out-${uuidv4().slice(0, 8)}`,
-        label: o.label,
-        probability: i === 0 ? 50 : 50,
-        totalShares: 0,
-      })),
-      totalVolume: 0,
-      totalBets: 0,
-      uniqueTraders: 0,
-      resolutionDate: payload.resolutionDate,
-      resolvedOutcomeId: null,
-      createdAt: now,
-      updatedAt: now,
-      tags: payload.tags,
-    };
+  createMarket: async (payload, creatorId) => {
+    const market = await apiFetch<Market>("/api/markets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, creatorId }),
+    });
 
-    const activity: MarketActivity = {
-      id: `act-${uuidv4().slice(0, 8)}`,
-      marketId: market.id,
-      agentId: creatorId,
-      agentName: creator?.displayName ?? "Unknown",
-      agentAvatar: creator?.avatar ?? "🤖",
-      type: "create",
-      timestamp: now,
-    };
-
+    const activities = await apiFetch<MarketActivity[]>("/api/activities?limit=50");
     set((state) => ({
       markets: [market, ...state.markets],
-      activities: [activity, ...state.activities],
+      activities,
     }));
 
     return market;
   },
 
-  placeBet: (payload, agentId) => {
-    const { markets, agents } = get();
-    const market = markets.find((m) => m.id === payload.marketId);
-    const agent = agents.find((a) => a.id === agentId);
-    const outcome = market?.outcomes.find((o) => o.id === payload.outcomeId);
+  placeBet: async (payload, agentId) => {
+    const bet = await apiFetch<Bet>(
+      `/api/markets/${payload.marketId}/bet`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          outcomeId: payload.outcomeId,
+          side: payload.side,
+          amount: payload.amount,
+        }),
+      }
+    );
 
-    const price = (outcome?.probability ?? 50) / 100;
-    const shares = payload.amount / price;
-    const now = new Date().toISOString();
-
-    const bet: Bet = {
-      id: `bet-${uuidv4().slice(0, 8)}`,
-      marketId: payload.marketId,
-      agentId,
-      agentName: agent?.displayName ?? "Unknown",
-      outcomeId: payload.outcomeId,
-      side: payload.side,
-      amount: payload.amount,
-      shares: Math.round(shares),
-      price,
-      potentialPayout: Math.round(shares),
-      status: "filled",
-      createdAt: now,
-    };
-
-    const activity: MarketActivity = {
-      id: `act-${uuidv4().slice(0, 8)}`,
-      marketId: payload.marketId,
-      agentId,
-      agentName: agent?.displayName ?? "Unknown",
-      agentAvatar: agent?.avatar ?? "🤖",
-      type: "bet",
-      side: payload.side,
-      amount: payload.amount,
-      outcomeLabel: outcome?.label,
-      timestamp: now,
-    };
+    const [markets, agents, activities] = await Promise.all([
+      apiFetch<Market[]>("/api/markets"),
+      apiFetch<Agent[]>("/api/agents"),
+      apiFetch<MarketActivity[]>("/api/activities?limit=50"),
+    ]);
 
     set((state) => ({
       bets: [bet, ...state.bets],
-      activities: [activity, ...state.activities],
-      markets: state.markets.map((m) => {
-        if (m.id !== payload.marketId) return m;
-        return {
-          ...m,
-          totalVolume: m.totalVolume + payload.amount,
-          totalBets: m.totalBets + 1,
-          updatedAt: now,
-          outcomes: m.outcomes.map((o) => {
-            if (o.id !== payload.outcomeId) return o;
-            return {
-              ...o,
-              totalShares: o.totalShares + Math.round(shares),
-              probability: Math.min(
-                99,
-                Math.max(1, o.probability + (payload.side === "yes" ? 1 : -1))
-              ),
-            };
-          }),
-        };
-      }),
-      agents: state.agents.map((a) => {
-        if (a.id !== agentId) return a;
-        return {
-          ...a,
-          balance: a.balance - payload.amount,
-          totalBets: a.totalBets + 1,
-          lastActiveAt: now,
-        };
-      }),
+      markets,
+      agents,
+      activities,
     }));
 
     return bet;

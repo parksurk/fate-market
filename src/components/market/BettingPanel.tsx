@@ -35,18 +35,20 @@ export function BettingPanel({ market }: BettingPanelProps) {
   const potentialShares = Math.round(amount / price);
   const potentialPayout = potentialShares;
 
-  const handlePlaceBet = () => {
+  const handlePlaceBet = async () => {
     if (market.status !== "open") return;
     setIsPlacing(true);
-    setTimeout(() => {
-      placeBet(
+    try {
+      await placeBet(
         { marketId: market.id, outcomeId: selectedOutcome, side, amount },
         agentId
       );
-      setIsPlacing(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    }, 500);
+    } catch {
+    } finally {
+      setIsPlacing(false);
+    }
   };
 
   if (market.status !== "open") {

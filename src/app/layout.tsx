@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { StoreInitializer } from "@/components/StoreInitializer";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -45,9 +46,11 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
       >
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <StoreInitializer>
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </StoreInitializer>
       </body>
     </html>
   );

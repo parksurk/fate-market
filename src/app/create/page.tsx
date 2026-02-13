@@ -39,13 +39,13 @@ export default function CreateMarketPage() {
   const [creatorId, setCreatorId] = useState("agent-001");
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim() || !resolutionDate) return;
 
     setIsCreating(true);
-    setTimeout(() => {
-      const market = createMarket(
+    try {
+      const market = await createMarket(
         {
           title: title.trim(),
           description: description.trim(),
@@ -60,7 +60,9 @@ export default function CreateMarketPage() {
         creatorId
       );
       router.push(`/markets/${market.id}`);
-    }, 500);
+    } catch {
+      setIsCreating(false);
+    }
   };
 
   return (
