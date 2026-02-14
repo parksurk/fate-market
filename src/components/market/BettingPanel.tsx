@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { type Market } from "@/types";
 import { useMarketStore } from "@/store/market-store";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -10,25 +11,16 @@ interface BettingPanelProps {
 }
 
 const QUICK_AMOUNTS = [100, 500, 1000, 5000];
-const AGENT_OPTIONS = [
-  { id: "agent-001", name: "Oracle GPT", avatar: "🔮" },
-  { id: "agent-002", name: "Claude Prophet", avatar: "🧠" },
-  { id: "agent-003", name: "Gemini Sage", avatar: "⚡" },
-  { id: "agent-004", name: "Llama Hunter", avatar: "🦊" },
-  { id: "agent-005", name: "Mistral Wind", avatar: "🌀" },
-  { id: "agent-006", name: "Deep Diver", avatar: "🌊" },
-  { id: "agent-007", name: "Risk Taker", avatar: "🎲" },
-  { id: "agent-008", name: "Diamond Hands", avatar: "💎" },
-];
 
 export function BettingPanel({ market }: BettingPanelProps) {
   const [selectedOutcome, setSelectedOutcome] = useState(market.outcomes[0]?.id ?? "");
   const [side, setSide] = useState<"yes" | "no">("yes");
   const [amount, setAmount] = useState(100);
-  const [agentId, setAgentId] = useState("agent-001");
+  const [reasoning, setReasoning] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const placeBet = useMarketStore((s) => s.placeBet);
+  const currentAgent = useMarketStore((s) => s.currentAgent);
 
   const selectedOutcomeData = market.outcomes.find((o) => o.id === selectedOutcome);
   const price = (selectedOutcomeData?.probability ?? 50) / 100;
@@ -36,14 +28,18 @@ export function BettingPanel({ market }: BettingPanelProps) {
   const potentialPayout = potentialShares;
 
   const handlePlaceBet = async () => {
-    if (market.status !== "open") return;
+    if (market.status !== "open" || !currentAgent) return;
     setIsPlacing(true);
     try {
-      await placeBet(
-        { marketId: market.id, outcomeId: selectedOutcome, side, amount },
-        agentId
-      );
+      await placeBet({
+        marketId: market.id,
+        outcomeId: selectedOutcome,
+        side,
+        amount,
+        reasoning: reasoning.trim() || undefined,
+      });
       setShowSuccess(true);
+      setReasoning("");
       setTimeout(() => setShowSuccess(false), 3000);
     } catch {
     } finally {
@@ -70,6 +66,28 @@ export function BettingPanel({ market }: BettingPanelProps) {
     );
   }
 
+  if (!currentAgent) {
+    return (
+      <div className="border-3 border-neo-black bg-neo-surface shadow-neo-lg">
+        <div className="border-b-3 border-neo-black bg-neo-yellow px-4 py-3">
+          <h3 className="font-mono text-sm font-black uppercase tracking-wider">
+            Place a Bet
+          </h3>
+        </div>
+        <div className="p-6 text-center">
+          <span className="text-4xl">🔑</span>
+          <p className="mt-3 font-mono text-sm font-bold">Login to place bets</p>
+          <Link
+            href="/login"
+            className="mt-4 inline-block border-3 border-neo-black bg-neo-yellow px-6 py-3 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+          >
+            🔑 Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border-3 border-neo-black bg-neo-surface shadow-neo-lg">
       <div className="border-b-3 border-neo-black bg-neo-yellow px-4 py-3">
@@ -79,21 +97,14 @@ export function BettingPanel({ market }: BettingPanelProps) {
       </div>
 
       <div className="space-y-4 p-4">
-        <div>
-          <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-            Acting as Agent
-          </label>
-          <select
-            value={agentId}
-            onChange={(e) => setAgentId(e.target.value)}
-            className="w-full border-3 border-neo-black bg-neo-surface px-3 py-2 font-mono text-sm font-bold focus:shadow-neo focus:outline-none"
-          >
-            {AGENT_OPTIONS.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.avatar} {a.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3 border-3 border-dashed border-neo-black/30 bg-neo-bg p-3">
+          <span className="text-2xl">{currentAgent.avatar}</span>
+          <div>
+            <div className="font-mono text-sm font-bold">{currentAgent.displayName}</div>
+            <div className="font-mono text-xs text-green-600">
+              Balance: {formatCurrency(currentAgent.balance)}
+            </div>
+          </div>
         </div>
 
         <div>
@@ -132,7 +143,7 @@ export function BettingPanel({ market }: BettingPanelProps) {
                   : "bg-neo-surface hover:bg-neo-lime/30"
               )}
             >
-              ✅ Yes
+              Yes
             </button>
             <button
               onClick={() => setSide("no")}
@@ -143,7 +154,7 @@ export function BettingPanel({ market }: BettingPanelProps) {
                   : "bg-neo-surface hover:bg-neo-red/10"
               )}
             >
-              ❌ No
+              No
             </button>
           </div>
         </div>
@@ -174,6 +185,23 @@ export function BettingPanel({ market }: BettingPanelProps) {
                 ${qa}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
+            Reasoning (optional)
+          </label>
+          <textarea
+            value={reasoning}
+            onChange={(e) => setReasoning(e.target.value)}
+            placeholder="Why are you making this bet? Share your analysis..."
+            rows={3}
+            maxLength={500}
+            className="w-full resize-none border-3 border-neo-black bg-neo-surface px-3 py-2 font-mono text-sm placeholder:text-neo-black/30 focus:shadow-neo focus:outline-none"
+          />
+          <div className="mt-1 text-right font-mono text-[10px] text-neo-black/40">
+            {reasoning.length}/500
           </div>
         </div>
 
@@ -211,7 +239,7 @@ export function BettingPanel({ market }: BettingPanelProps) {
 
         {showSuccess && (
           <div className="border-3 border-neo-black bg-neo-lime p-3 text-center font-mono text-sm font-bold">
-            ✅ Bet placed successfully!
+            Bet placed successfully!
           </div>
         )}
       </div>

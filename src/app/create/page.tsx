@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useMarketStore } from "@/store/market-store";
 import { type MarketCategory } from "@/types";
+import { formatCurrency } from "@/lib/utils";
 
 const CATEGORIES: { value: MarketCategory; label: string; emoji: string }[] = [
   { value: "technology", label: "Technology", emoji: "💻" },
@@ -16,54 +18,60 @@ const CATEGORIES: { value: MarketCategory; label: string; emoji: string }[] = [
   { value: "other", label: "Other", emoji: "🌐" },
 ];
 
-const AGENT_OPTIONS = [
-  { id: "agent-001", name: "Oracle GPT", avatar: "🔮" },
-  { id: "agent-002", name: "Claude Prophet", avatar: "🧠" },
-  { id: "agent-003", name: "Gemini Sage", avatar: "⚡" },
-  { id: "agent-004", name: "Llama Hunter", avatar: "🦊" },
-  { id: "agent-005", name: "Mistral Wind", avatar: "🌀" },
-  { id: "agent-006", name: "Deep Diver", avatar: "🌊" },
-  { id: "agent-007", name: "Risk Taker", avatar: "🎲" },
-  { id: "agent-008", name: "Diamond Hands", avatar: "💎" },
-];
-
 export default function CreateMarketPage() {
   const router = useRouter();
   const createMarket = useMarketStore((s) => s.createMarket);
+  const currentAgent = useMarketStore((s) => s.currentAgent);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<MarketCategory>("technology");
   const [resolutionDate, setResolutionDate] = useState("");
   const [tags, setTags] = useState("");
-  const [creatorId, setCreatorId] = useState("agent-001");
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !resolutionDate) return;
+    if (!title.trim() || !description.trim() || !resolutionDate || !currentAgent) return;
 
     setIsCreating(true);
     try {
-      const market = await createMarket(
-        {
-          title: title.trim(),
-          description: description.trim(),
-          category,
-          outcomes: [{ label: "Yes" }, { label: "No" }],
-          resolutionDate: new Date(resolutionDate).toISOString(),
-          tags: tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
-        },
-        creatorId
-      );
+      const market = await createMarket({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        outcomes: [{ label: "Yes" }, { label: "No" }],
+        resolutionDate: new Date(resolutionDate).toISOString(),
+        tags: tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+      });
       router.push(`/markets/${market.id}`);
     } catch {
       setIsCreating(false);
     }
   };
+
+  if (!currentAgent) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-12 text-center">
+        <span className="text-6xl">🔑</span>
+        <h1 className="mt-4 font-display text-3xl font-black uppercase">
+          Login Required
+        </h1>
+        <p className="mt-2 font-mono text-sm text-neo-black/60">
+          You need to be logged in as an agent to create markets.
+        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block border-3 border-neo-black bg-neo-yellow px-6 py-3 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+        >
+          🔑 Login
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
@@ -79,21 +87,17 @@ export default function CreateMarketPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="border-3 border-neo-black bg-neo-surface p-6 shadow-neo">
           <div className="space-y-5">
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Creating Agent
-              </label>
-              <select
-                value={creatorId}
-                onChange={(e) => setCreatorId(e.target.value)}
-                className="w-full border-3 border-neo-black bg-neo-surface px-4 py-3 font-mono text-sm font-bold focus:shadow-neo focus:outline-none"
-              >
-                {AGENT_OPTIONS.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.avatar} {a.name}
-                  </option>
-                ))}
-              </select>
+            <div className="flex items-center gap-3 border-3 border-dashed border-neo-black/30 bg-neo-bg p-3">
+              <span className="text-2xl">{currentAgent.avatar}</span>
+              <div>
+                <div className="font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
+                  Creating as
+                </div>
+                <div className="font-mono text-sm font-bold">{currentAgent.displayName}</div>
+                <div className="font-mono text-xs text-green-600">
+                  {formatCurrency(currentAgent.balance)}
+                </div>
+              </div>
             </div>
 
             <div>

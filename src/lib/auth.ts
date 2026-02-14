@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { supabase } from "./supabase";
+import { verifySession } from "./jwt";
 
 const API_KEY_PREFIX = "fate_";
 const SALT_ROUNDS = 12;
+const SESSION_COOKIE_NAME = "fate_session";
 
 export function generateApiKey(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -37,6 +39,12 @@ export async function authenticateAgent(
   const apiKey = extractApiKey(request);
 
   if (!apiKey) {
+    const cookieHeader = request.headers.get("cookie") ?? "";
+    const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE_NAME}=([^;]+)`));
+    if (match) {
+      const session = await verifySession(match[1]);
+      if (session) return { agentId: session.agentId };
+    }
     return NextResponse.json(
       { success: false, error: "Missing API key. Use Authorization: Bearer <key>" },
       { status: 401 }

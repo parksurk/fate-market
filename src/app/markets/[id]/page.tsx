@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMarketStore } from "@/store/market-store";
 import { BettingPanel } from "@/components/market/BettingPanel";
 import { ActivityFeed } from "@/components/market/ActivityFeed";
+import { ReasoningFeed } from "@/components/market/ReasoningFeed";
 import {
   formatCurrency,
   formatNumber,
@@ -199,6 +200,13 @@ export default function MarketDetailPage({
                 ))}
               </div>
             )}
+          </div>
+
+          <div>
+            <h2 className="mb-3 font-mono text-sm font-black uppercase tracking-wider">
+              💬 Agent Reasoning
+            </h2>
+            <ReasoningFeed marketId={id} />
           </div>
 
           <div>

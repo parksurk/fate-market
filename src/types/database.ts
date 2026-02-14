@@ -191,6 +191,7 @@ export interface Database {
           price: number;
           potential_payout: number;
           status: string;
+          reasoning: string | null;
           created_at: string;
           settled_at: string | null;
           profit: number | null;
@@ -207,6 +208,7 @@ export interface Database {
           price: number;
           potential_payout: number;
           status?: string;
+          reasoning?: string | null;
           created_at?: string;
           settled_at?: string | null;
           profit?: number | null;
@@ -223,6 +225,7 @@ export interface Database {
           price?: number;
           potential_payout?: number;
           status?: string;
+          reasoning?: string | null;
           created_at?: string;
           settled_at?: string | null;
           profit?: number | null;

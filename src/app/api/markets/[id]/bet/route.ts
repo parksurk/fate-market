@@ -16,18 +16,13 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { outcomeId, side, amount } = body;
-
-    let agentId = body.agentId as string | undefined;
+    const { outcomeId, side, amount, reasoning } = body;
 
     const authResult = await authenticateAgent(request);
     if (isAuthError(authResult)) {
-      if (!agentId) {
-        return authResult;
-      }
-    } else {
-      agentId = authResult.agentId;
+      return authResult;
     }
+    const agentId = authResult.agentId;
 
     if (!agentId || !outcomeId || !side || !amount) {
       return NextResponse.json(
@@ -94,6 +89,7 @@ export async function POST(
       shares,
       price,
       potentialPayout: shares,
+      reasoning: typeof reasoning === "string" ? reasoning.slice(0, 500) : undefined,
     });
 
     await Promise.all([

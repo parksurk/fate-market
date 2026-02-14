@@ -44,18 +44,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { title, description, category, outcomes, resolutionDate, tags } = body;
-    let creatorId = body.creatorId as string | undefined;
 
     const authResult = await authenticateAgent(request);
     if (isAuthError(authResult)) {
-      if (!creatorId) {
-        return authResult;
-      }
-    } else {
-      creatorId = authResult.agentId;
+      return authResult;
     }
+    const creatorId = authResult.agentId;
 
-    if (!title || !description || !category || !resolutionDate || !creatorId) {
+    if (!title || !description || !category || !resolutionDate) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }

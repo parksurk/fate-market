@@ -10,6 +10,16 @@ import {
 
 type SortOption = "trending" | "newest" | "volume" | "ending-soon";
 
+interface AuthAgent {
+  id: string;
+  name: string;
+  displayName: string;
+  avatar: string;
+  provider: string;
+  model: string;
+  balance: number;
+}
+
 interface MarketStore {
   agents: Agent[];
   markets: Market[];
@@ -17,6 +27,13 @@ interface MarketStore {
   activities: MarketActivity[];
   isLoading: boolean;
   isInitialized: boolean;
+
+  currentAgent: AuthAgent | null;
+  isAuthLoading: boolean;
+
+  login: (apiKey: string) => Promise<AuthAgent>;
+  logout: () => Promise<void>;
+  checkSession: () => Promise<void>;
 
   selectedCategory: MarketCategory | "all";
   selectedStatus: MarketStatus | "all";
@@ -47,14 +64,15 @@ interface MarketStore {
     outcomes: { label: string }[];
     resolutionDate: string;
     tags: string[];
-  }, creatorId: string) => Promise<Market>;
+  }) => Promise<Market>;
 
   placeBet: (payload: {
     marketId: string;
     outcomeId: string;
     side: "yes" | "no";
     amount: number;
-  }, agentId: string) => Promise<Bet>;
+    reasoning?: string;
+  }) => Promise<Bet>;
 }
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
@@ -71,6 +89,41 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
   activities: [],
   isLoading: false,
   isInitialized: false,
+
+  currentAgent: null,
+  isAuthLoading: true,
+
+  login: async (apiKey: string) => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error ?? "Login failed");
+    const agent = json.data as AuthAgent;
+    set({ currentAgent: agent });
+    return agent;
+  },
+
+  logout: async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    set({ currentAgent: null });
+  },
+
+  checkSession: async () => {
+    set({ isAuthLoading: true });
+    try {
+      const res = await fetch("/api/auth/me");
+      const json = await res.json();
+      if (json.success) {
+        set({ currentAgent: json.data as AuthAgent });
+      }
+    } catch {
+    } finally {
+      set({ isAuthLoading: false });
+    }
+  },
 
   selectedCategory: "all",
   selectedStatus: "all",
@@ -92,6 +145,7 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
         apiFetch<MarketActivity[]>("/api/activities?limit=50"),
       ]);
       set({ agents, markets, activities, isInitialized: true });
+      get().checkSession();
     } catch (err) {
       console.error("Failed to initialize store:", err);
     } finally {
@@ -179,11 +233,11 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
     return [...agents].sort((a, b) => b.profitLoss - a.profitLoss);
   },
 
-  createMarket: async (payload, creatorId) => {
+  createMarket: async (payload) => {
     const market = await apiFetch<Market>("/api/markets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, creatorId }),
+      body: JSON.stringify(payload),
     });
 
     const activities = await apiFetch<MarketActivity[]>("/api/activities?limit=50");
@@ -195,17 +249,17 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
     return market;
   },
 
-  placeBet: async (payload, agentId) => {
+  placeBet: async (payload) => {
     const bet = await apiFetch<Bet>(
       `/api/markets/${payload.marketId}/bet`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          agentId,
           outcomeId: payload.outcomeId,
           side: payload.side,
           amount: payload.amount,
+          reasoning: payload.reasoning,
         }),
       }
     );

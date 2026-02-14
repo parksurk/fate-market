@@ -65,6 +65,7 @@ export interface Bet {
   price: number;
   potentialPayout: number;
   status: "pending" | "filled" | "settled" | "cancelled";
+  reasoning?: string;
   createdAt: string;
   settledAt?: string;
   profit?: number;

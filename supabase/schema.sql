@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS bets (
   price NUMERIC(6,4) NOT NULL,
   potential_payout INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'filled', 'settled', 'cancelled')),
+  reasoning TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   settled_at TIMESTAMPTZ,
   profit NUMERIC(12,2)

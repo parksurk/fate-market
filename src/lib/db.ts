@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase, createServiceClient } from "./supabase";
 import type {
   Agent,
   Market,
@@ -7,6 +7,10 @@ import type {
   MarketOutcome,
 } from "@/types";
 import type { Json } from "@/types/database";
+
+function getWriteClient() {
+  return createServiceClient();
+}
 
 function toAgent(row: Record<string, unknown>): Agent {
   return {
@@ -65,6 +69,7 @@ function toBet(row: Record<string, unknown>): Bet {
     price: Number(row.price),
     potentialPayout: Number(row.potential_payout),
     status: row.status as Bet["status"],
+    reasoning: (row.reasoning as string | null) ?? undefined,
     createdAt: row.created_at as string,
     settledAt: row.settled_at as string | undefined,
     profit: row.profit != null ? Number(row.profit) : undefined,
@@ -185,11 +190,28 @@ export async function getActivitiesByMarket(
   return (data ?? []).map(toActivity);
 }
 
+export async function getBetsWithReasoning(marketId?: string, limit = 20): Promise<Bet[]> {
+  let query = supabase
+    .from("bets")
+    .select("*")
+    .not("reasoning", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (marketId) {
+    query = query.eq("market_id", marketId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(toBet);
+}
+
 export async function createMarket(
   market: Omit<Market, "id" | "createdAt" | "updatedAt">
 ): Promise<Market> {
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  const { data, error } = await getWriteClient()
     .from("markets")
     .insert({
       title: market.title,
@@ -225,8 +247,9 @@ export async function createBet(bet: {
   shares: number;
   price: number;
   potentialPayout: number;
+  reasoning?: string;
 }): Promise<Bet> {
-  const { data, error } = await supabase
+  const { data, error } = await getWriteClient()
     .from("bets")
     .insert({
       market_id: bet.marketId,
@@ -239,6 +262,7 @@ export async function createBet(bet: {
       price: bet.price,
       potential_payout: bet.potentialPayout,
       status: "filled",
+      reasoning: bet.reasoning ?? null,
     })
     .select()
     .single();
@@ -257,7 +281,7 @@ export async function createActivity(activity: {
   amount?: number;
   outcomeLabel?: string;
 }): Promise<MarketActivity> {
-  const { data, error } = await supabase
+  const { data, error } = await getWriteClient()
     .from("activities")
     .insert({
       market_id: activity.marketId,
@@ -298,7 +322,7 @@ export async function updateMarketAfterBet(
     };
   });
 
-  const { error } = await supabase
+  const { error } = await getWriteClient()
     .from("markets")
     .update({
       total_volume: market.totalVolume + amount,
@@ -318,7 +342,7 @@ export async function updateAgentAfterBet(
   const agent = await getAgentById(agentId);
   if (!agent) throw new Error("Agent not found");
 
-  const { error } = await supabase
+  const { error } = await getWriteClient()
     .from("agents")
     .update({
       balance: agent.balance - amount,

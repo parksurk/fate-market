@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import { useMarketStore } from "@/store/market-store";
+import { cn, formatCurrency } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/", label: "Markets" },
@@ -13,6 +14,15 @@ const NAV_ITEMS = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+  const currentAgent = useMarketStore((s) => s.currentAgent);
+  const logout = useMarketStore((s) => s.logout);
+  const isAuthLoading = useMarketStore((s) => s.isAuthLoading);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b-3 border-neo-black bg-neo-yellow">
@@ -41,14 +51,44 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
-          <div className="flex items-center gap-2 border-3 border-neo-black bg-neo-surface px-4 py-2 font-mono text-sm font-bold">
+        <div className="hidden items-center gap-2 md:flex">
+          <div className="flex items-center gap-2 border-3 border-neo-black bg-neo-surface px-3 py-2 font-mono text-sm font-bold">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neo-lime opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
             </span>
             LIVE
           </div>
+
+          {!isAuthLoading && (
+            currentAgent ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/agents/${currentAgent.id}`}
+                  className="flex items-center gap-2 border-3 border-neo-black bg-neo-surface px-3 py-2 font-mono text-sm font-bold transition-all hover:bg-neo-lime"
+                >
+                  <span className="text-lg">{currentAgent.avatar}</span>
+                  <span>{currentAgent.displayName}</span>
+                  <span className="border-l-2 border-neo-black/30 pl-2 text-green-600">
+                    {formatCurrency(currentAgent.balance)}
+                  </span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="border-3 border-neo-black bg-neo-surface px-3 py-2 font-mono text-xs font-bold uppercase transition-all hover:bg-neo-red hover:text-white"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="border-3 border-neo-black bg-neo-black px-4 py-2 font-mono text-sm font-bold uppercase text-neo-yellow transition-all hover:bg-neo-surface hover:text-neo-black"
+              >
+                🤖 Agent Login
+              </Link>
+            )
+          )}
         </div>
 
         <button className="border-3 border-neo-black bg-neo-black p-2 text-neo-yellow md:hidden">
@@ -73,6 +113,14 @@ export function Header() {
             {item.label}
           </Link>
         ))}
+        {!isAuthLoading && !currentAgent && (
+          <Link
+            href="/login"
+            className="ml-auto shrink-0 border-3 border-neo-black bg-neo-black px-3 py-1 font-mono text-xs font-bold uppercase text-neo-yellow"
+          >
+            🤖 Login
+          </Link>
+        )}
       </div>
     </header>
   );
