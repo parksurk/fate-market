@@ -31,6 +31,16 @@ function toAgent(row: Record<string, unknown>): Agent {
     winRate: Number(row.win_rate),
     createdAt: row.created_at as string,
     lastActiveAt: row.last_active_at as string,
+    walletAddress: (row.wallet_address as string | null) ?? undefined,
+    walletVerifiedAt: (row.wallet_verified_at as string | null) ?? undefined,
+    walletChainId: row.wallet_chain_id != null ? Number(row.wallet_chain_id) : undefined,
+    usdcBalance: row.usdc_balance != null ? Number(row.usdc_balance) : undefined,
+    sbtTokenId: row.sbt_token_id != null ? Number(row.sbt_token_id) : undefined,
+    sbtMintedAt: (row.sbt_minted_at as string | null) ?? undefined,
+    reputationScore: row.reputation_score != null ? Number(row.reputation_score) : undefined,
+    reputationUpdatedAt: (row.reputation_updated_at as string | null) ?? undefined,
+    fateStaked: row.fate_staked != null ? Number(row.fate_staked) : undefined,
+    sfateBalance: row.sfate_balance != null ? Number(row.sfate_balance) : undefined,
   };
 }
 
@@ -53,6 +63,11 @@ function toMarket(row: Record<string, unknown>): Market {
     updatedAt: row.updated_at as string,
     tags: row.tags as string[],
     imageUrl: row.image_url as string | undefined,
+    onchainAddress: (row.onchain_address as string | null) ?? undefined,
+    onchainMarketId: (row.onchain_market_id as string | null) ?? undefined,
+    oracleType: (row.oracle_type as string | null) ?? undefined,
+    onchainStatus: (row.onchain_status as string | null) ?? undefined,
+    feeBps: row.fee_bps != null ? Number(row.fee_bps) : undefined,
   };
 }
 
@@ -73,6 +88,18 @@ function toBet(row: Record<string, unknown>): Bet {
     createdAt: row.created_at as string,
     settledAt: row.settled_at as string | undefined,
     profit: row.profit != null ? Number(row.profit) : undefined,
+    contentHash: (row.content_hash as string | null) ?? undefined,
+    ipfsCid: (row.ipfs_cid as string | null) ?? undefined,
+    ipfsStatus: (row.ipfs_status as Bet["ipfsStatus"]) ?? undefined,
+    chainId: row.chain_id != null ? Number(row.chain_id) : undefined,
+    registryContract: (row.registry_contract as string | null) ?? undefined,
+    txHash: (row.tx_hash as string | null) ?? undefined,
+    blockNumber: row.block_number != null ? Number(row.block_number) : undefined,
+    anchoredAt: (row.anchored_at as string | null) ?? undefined,
+    onchainMarketAddress: (row.onchain_market_address as string | null) ?? undefined,
+    onchainOutcomeIndex: row.onchain_outcome_index != null ? Number(row.onchain_outcome_index) : undefined,
+    onchainTxHash: (row.onchain_tx_hash as string | null) ?? undefined,
+    betType: (row.bet_type as Bet["betType"]) ?? undefined,
   };
 }
 
@@ -248,6 +275,10 @@ export async function createBet(bet: {
   price: number;
   potentialPayout: number;
   reasoning?: string;
+  betType?: "virtual" | "usdc";
+  onchainMarketAddress?: string;
+  onchainOutcomeIndex?: number;
+  onchainTxHash?: string;
 }): Promise<Bet> {
   const { data, error } = await getWriteClient()
     .from("bets")
@@ -263,6 +294,10 @@ export async function createBet(bet: {
       potential_payout: bet.potentialPayout,
       status: "filled",
       reasoning: bet.reasoning ?? null,
+      bet_type: bet.betType ?? "virtual",
+      onchain_market_address: bet.onchainMarketAddress ?? null,
+      onchain_outcome_index: bet.onchainOutcomeIndex ?? null,
+      onchain_tx_hash: bet.onchainTxHash ?? null,
     })
     .select()
     .single();

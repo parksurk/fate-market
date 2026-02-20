@@ -19,6 +19,16 @@ export interface Agent {
   winRate: number;
   createdAt: string;
   lastActiveAt: string;
+  walletAddress?: string;
+  walletVerifiedAt?: string;
+  walletChainId?: number;
+  usdcBalance?: number;
+  sbtTokenId?: number;
+  sbtMintedAt?: string;
+  reputationScore?: number;
+  reputationUpdatedAt?: string;
+  fateStaked?: number;
+  sfateBalance?: number;
 }
 
 export type MarketStatus = "open" | "closed" | "resolved" | "cancelled";
@@ -49,9 +59,16 @@ export interface Market {
   updatedAt: string;
   tags: string[];
   imageUrl?: string;
+  onchainAddress?: string;
+  onchainMarketId?: string;
+  oracleType?: string;
+  onchainStatus?: string;
+  feeBps?: number;
 }
 
 export type BetSide = "yes" | "no";
+
+export type IpfsStatus = "none" | "pending" | "pinned" | "failed";
 
 export interface Bet {
   id: string;
@@ -69,6 +86,18 @@ export interface Bet {
   createdAt: string;
   settledAt?: string;
   profit?: number;
+  contentHash?: string;
+  ipfsCid?: string;
+  ipfsStatus?: IpfsStatus;
+  chainId?: number;
+  registryContract?: string;
+  txHash?: string;
+  blockNumber?: number;
+  anchoredAt?: string;
+  onchainMarketAddress?: string;
+  onchainOutcomeIndex?: number;
+  onchainTxHash?: string;
+  betType?: "virtual" | "usdc";
 }
 
 export interface Position {
@@ -118,4 +147,44 @@ export interface PlaceBetPayload {
   outcomeId: string;
   side: BetSide;
   amount: number;
+}
+
+export interface AgentReputation {
+  tokenId: number;
+  score: number;
+  winRate: number;
+  volume: number;
+  marketsParticipated: number;
+  lastActive: string;
+  totalStaked: number;
+  followerCount: number;
+}
+
+export type ProposalStatus = "pending" | "active" | "defeated" | "succeeded" | "queued" | "executed" | "cancelled" | "expired";
+export type VoteSupport = 0 | 1 | 2;
+
+export interface GovernanceProposal {
+  id: string;
+  proposalId: string;
+  proposerAddress: string;
+  proposerAgentId?: string;
+  title: string;
+  description: string;
+  status: ProposalStatus;
+  forVotes: string;
+  againstVotes: string;
+  abstainVotes: string;
+  startBlock?: number;
+  endBlock?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GovernanceVote {
+  id: string;
+  proposalId: string;
+  voterAddress: string;
+  support: VoteSupport;
+  weight: string;
+  createdAt: string;
 }

@@ -69,6 +69,16 @@ export interface Database {
           win_rate: number;
           created_at: string;
           last_active_at: string;
+          wallet_address: string | null;
+          wallet_verified_at: string | null;
+          wallet_chain_id: number | null;
+          usdc_balance: number;
+          sbt_token_id: number | null;
+          sbt_minted_at: string | null;
+          reputation_score: number;
+          reputation_updated_at: string | null;
+          fate_staked: number;
+          sfate_balance: number;
         };
         Insert: {
           id?: string;
@@ -88,6 +98,16 @@ export interface Database {
           win_rate?: number;
           created_at?: string;
           last_active_at?: string;
+          wallet_address?: string | null;
+          wallet_verified_at?: string | null;
+          wallet_chain_id?: number | null;
+          usdc_balance?: number;
+          sbt_token_id?: number | null;
+          sbt_minted_at?: string | null;
+          reputation_score?: number;
+          reputation_updated_at?: string | null;
+          fate_staked?: number;
+          sfate_balance?: number;
         };
         Update: {
           id?: string;
@@ -107,6 +127,16 @@ export interface Database {
           win_rate?: number;
           created_at?: string;
           last_active_at?: string;
+          wallet_address?: string | null;
+          wallet_verified_at?: string | null;
+          wallet_chain_id?: number | null;
+          usdc_balance?: number;
+          sbt_token_id?: number | null;
+          sbt_minted_at?: string | null;
+          reputation_score?: number;
+          reputation_updated_at?: string | null;
+          fate_staked?: number;
+          sfate_balance?: number;
         };
         Relationships: [];
       };
@@ -129,6 +159,16 @@ export interface Database {
           updated_at: string;
           tags: string[];
           image_url: string | null;
+          onchain_address: string | null;
+          onchain_market_id: string | null;
+          oracle_type: string | null;
+          oracle_request_id: string | null;
+          resolution_tx_hash: string | null;
+          resolution_evidence_hash: string | null;
+          dispute_deadline: string | null;
+          onchain_status: string | null;
+          metadata_hash: string | null;
+          fee_bps: number | null;
         };
         Insert: {
           id?: string;
@@ -148,6 +188,16 @@ export interface Database {
           updated_at?: string;
           tags?: string[];
           image_url?: string | null;
+          onchain_address?: string | null;
+          onchain_market_id?: string | null;
+          oracle_type?: string | null;
+          oracle_request_id?: string | null;
+          resolution_tx_hash?: string | null;
+          resolution_evidence_hash?: string | null;
+          dispute_deadline?: string | null;
+          onchain_status?: string | null;
+          metadata_hash?: string | null;
+          fee_bps?: number | null;
         };
         Update: {
           id?: string;
@@ -167,6 +217,16 @@ export interface Database {
           updated_at?: string;
           tags?: string[];
           image_url?: string | null;
+          onchain_address?: string | null;
+          onchain_market_id?: string | null;
+          oracle_type?: string | null;
+          oracle_request_id?: string | null;
+          resolution_tx_hash?: string | null;
+          resolution_evidence_hash?: string | null;
+          dispute_deadline?: string | null;
+          onchain_status?: string | null;
+          metadata_hash?: string | null;
+          fee_bps?: number | null;
         };
         Relationships: [
           {
@@ -195,6 +255,18 @@ export interface Database {
           created_at: string;
           settled_at: string | null;
           profit: number | null;
+          content_hash: string | null;
+          ipfs_cid: string | null;
+          ipfs_status: string | null;
+          chain_id: number | null;
+          registry_contract: string | null;
+          tx_hash: string | null;
+          block_number: number | null;
+          anchored_at: string | null;
+          onchain_market_address: string | null;
+          onchain_outcome_index: number | null;
+          onchain_tx_hash: string | null;
+          bet_type: string;
         };
         Insert: {
           id?: string;
@@ -212,6 +284,18 @@ export interface Database {
           created_at?: string;
           settled_at?: string | null;
           profit?: number | null;
+          content_hash?: string | null;
+          ipfs_cid?: string | null;
+          ipfs_status?: string | null;
+          chain_id?: number | null;
+          registry_contract?: string | null;
+          tx_hash?: string | null;
+          block_number?: number | null;
+          anchored_at?: string | null;
+          onchain_market_address?: string | null;
+          onchain_outcome_index?: number | null;
+          onchain_tx_hash?: string | null;
+          bet_type?: string;
         };
         Update: {
           id?: string;
@@ -229,6 +313,18 @@ export interface Database {
           created_at?: string;
           settled_at?: string | null;
           profit?: number | null;
+          content_hash?: string | null;
+          ipfs_cid?: string | null;
+          ipfs_status?: string | null;
+          chain_id?: number | null;
+          registry_contract?: string | null;
+          tx_hash?: string | null;
+          block_number?: number | null;
+          anchored_at?: string | null;
+          onchain_market_address?: string | null;
+          onchain_outcome_index?: number | null;
+          onchain_tx_hash?: string | null;
+          bet_type?: string;
         };
         Relationships: [
           {
@@ -294,6 +390,41 @@ export interface Database {
           },
           {
             foreignKeyName: "activities_agent_id_fkey";
+            columns: ["agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wallet_nonces: {
+        Row: {
+          id: string;
+          nonce: string;
+          agent_id: string;
+          used: boolean;
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          nonce: string;
+          agent_id: string;
+          used?: boolean;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Update: {
+          id?: string;
+          nonce?: string;
+          agent_id?: string;
+          used?: boolean;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wallet_nonces_agent_id_fkey";
             columns: ["agent_id"];
             isOneToOne: false;
             referencedRelation: "agents";

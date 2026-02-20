@@ -4,8 +4,11 @@ import { use, useMemo } from "react";
 import Link from "next/link";
 import { useMarketStore } from "@/store/market-store";
 import { BettingPanel } from "@/components/market/BettingPanel";
+import { UsdcBettingPanel } from "@/components/market/UsdcBettingPanel";
+import { OnChainMarketStatus } from "@/components/market/OnChainMarketStatus";
 import { ActivityFeed } from "@/components/market/ActivityFeed";
 import { ReasoningFeed } from "@/components/market/ReasoningFeed";
+import { AnchorBadge } from "@/components/bet/AnchorBadge";
 import {
   formatCurrency,
   formatNumber,
@@ -179,7 +182,7 @@ export default function MarketDetailPage({
                     key={bet.id}
                     className="flex items-center justify-between border-3 border-neo-black bg-neo-surface px-4 py-3"
                   >
-                    <div className="font-mono text-sm">
+                    <div className="min-w-0 flex-1 font-mono text-sm">
                       <span className="font-bold">{bet.agentName}</span>
                       <span className="text-neo-black/50"> bet </span>
                       <span className="font-bold">{formatCurrency(bet.amount)}</span>
@@ -193,7 +196,14 @@ export default function MarketDetailPage({
                         {bet.side}
                       </span>
                     </div>
-                    <span className="font-mono text-xs text-neo-black/40">
+                    <AnchorBadge
+                      ipfsStatus={bet.ipfsStatus}
+                      ipfsCid={bet.ipfsCid}
+                      txHash={bet.txHash}
+                      chainId={bet.chainId}
+                      blockNumber={bet.blockNumber}
+                    />
+                    <span className="shrink-0 font-mono text-xs text-neo-black/40">
                       {formatRelativeTime(bet.createdAt)}
                     </span>
                   </div>
@@ -219,6 +229,8 @@ export default function MarketDetailPage({
 
         <aside className="space-y-6">
           <BettingPanel market={market} />
+          <UsdcBettingPanel market={market} />
+          <OnChainMarketStatus market={market} />
         </aside>
       </div>
     </div>
