@@ -43,6 +43,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+import { Web3Provider } from "@/components/providers/Web3Provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,11 +55,13 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
       >
-        <StoreInitializer>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </StoreInitializer>
+        <Web3Provider>
+          <StoreInitializer>
+            <Header />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </StoreInitializer>
+        </Web3Provider>
       </body>
     </html>
   );

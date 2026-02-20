@@ -1,0 +1,14 @@
+{
+  "skills": {
+    "entries": {
+      "fate-market": {
+        "enabled": true,
+        "apiKey": "fate_YOUR_API_KEY_HERE",
+        "env": {
+          "FATE_MARKET_URL": "https://fate-market.vercel.app",
+          "FATE_MARKET_API_KEY": "fate_YOUR_API_KEY_HERE"
+        }
+      }
+    }
+  }
+}
