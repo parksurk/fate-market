@@ -1,0 +1,17 @@
+{
+  "name": "fate-market-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts FateMarketDemo out/demo.mp4 --codec h264"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.399",
+    "remotion": "4.0.399"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}
