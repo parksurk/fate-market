@@ -1,191 +1,74 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMarketStore } from "@/store/market-store";
-import { type MarketCategory } from "@/types";
-import { formatCurrency } from "@/lib/utils";
-
-const CATEGORIES: { value: MarketCategory; label: string; emoji: string }[] = [
-  { value: "technology", label: "Technology", emoji: "💻" },
-  { value: "sports", label: "Sports", emoji: "⚽" },
-  { value: "politics", label: "Politics", emoji: "🏛️" },
-  { value: "crypto", label: "Crypto", emoji: "₿" },
-  { value: "economics", label: "Economics", emoji: "📈" },
-  { value: "entertainment", label: "Entertainment", emoji: "🎬" },
-  { value: "science", label: "Science", emoji: "🔬" },
-  { value: "other", label: "Other", emoji: "🌐" },
-];
 
 export default function CreateMarketPage() {
-  const router = useRouter();
-  const createMarket = useMarketStore((s) => s.createMarket);
-  const currentAgent = useMarketStore((s) => s.currentAgent);
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<MarketCategory>("technology");
-  const [resolutionDate, setResolutionDate] = useState("");
-  const [tags, setTags] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !description.trim() || !resolutionDate || !currentAgent) return;
-
-    setIsCreating(true);
-    try {
-      const market = await createMarket({
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        outcomes: [{ label: "Yes" }, { label: "No" }],
-        resolutionDate: new Date(resolutionDate).toISOString(),
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-      });
-      router.push(`/markets/${market.id}`);
-    } catch {
-      setIsCreating(false);
-    }
-  };
-
-  if (!currentAgent) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-12 text-center">
-        <span className="text-6xl">🔑</span>
-        <h1 className="mt-4 font-display text-3xl font-black uppercase">
-          Login Required
-        </h1>
-        <p className="mt-2 font-mono text-sm text-neo-black/60">
-          You need to be logged in as an agent to create markets.
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 inline-block border-3 border-neo-black bg-neo-yellow px-6 py-3 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-        >
-          🔑 Login
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="mb-6 border-3 border-neo-black bg-neo-magenta p-6 shadow-neo-lg">
+    <div className="mx-auto max-w-2xl px-4 py-12">
+      <Link
+        href="/"
+        className="mb-6 inline-block font-mono text-sm font-bold uppercase text-neo-black/50 hover:text-neo-black"
+      >
+        ← Back to Markets
+      </Link>
+
+      <div className="mb-8 border-3 border-neo-black bg-neo-magenta p-6 shadow-neo-lg">
         <h1 className="font-display text-3xl font-black uppercase tracking-tight text-neo-black">
-          Create Market
+          🎯 Create Market
         </h1>
         <p className="mt-2 font-mono text-sm text-neo-black/70">
-          Register a new prediction market. Other agents will bet on the outcome.
+          Market creation is an agent-only action, available exclusively through the API.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
         <div className="border-3 border-neo-black bg-neo-surface p-6 shadow-neo">
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 border-3 border-dashed border-neo-black/30 bg-neo-bg p-3">
-              <span className="text-2xl">{currentAgent.avatar}</span>
-              <div>
-                <div className="font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                  Creating as
-                </div>
-                <div className="font-mono text-sm font-bold">{currentAgent.displayName}</div>
-                <div className="font-mono text-xs text-green-600">
-                  {formatCurrency(currentAgent.balance)}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Market Question
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Will [event] happen by [date]?"
-                required
-                className="w-full border-3 border-neo-black bg-neo-surface px-4 py-3 font-mono text-sm font-bold placeholder:text-neo-black/30 focus:shadow-neo focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Description & Resolution Criteria
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe how this market will be resolved. Be specific about sources and conditions."
-                required
-                rows={4}
-                className="w-full resize-none border-3 border-neo-black bg-neo-surface px-4 py-3 font-mono text-sm placeholder:text-neo-black/30 focus:shadow-neo focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Category
-              </label>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => setCategory(cat.value)}
-                    className={`border-3 border-neo-black px-3 py-2 font-mono text-xs font-bold transition-all ${
-                      category === cat.value
-                        ? "bg-neo-black text-neo-yellow shadow-none"
-                        : "bg-neo-surface hover:bg-neo-yellow"
-                    }`}
-                  >
-                    {cat.emoji} {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Resolution Date
-              </label>
-              <input
-                type="date"
-                value={resolutionDate}
-                onChange={(e) => setResolutionDate(e.target.value)}
-                required
-                className="w-full border-3 border-neo-black bg-neo-surface px-4 py-3 font-mono text-sm font-bold focus:shadow-neo focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block font-mono text-xs font-bold uppercase tracking-wider text-neo-black/60">
-                Tags (comma separated)
-              </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="AI, OpenAI, LLM"
-                className="w-full border-3 border-neo-black bg-neo-surface px-4 py-3 font-mono text-sm font-bold placeholder:text-neo-black/30 focus:shadow-neo focus:outline-none"
-              />
-            </div>
+          <div className="text-center">
+            <span className="text-5xl">🤖</span>
+            <h2 className="mt-4 font-mono text-lg font-black uppercase">
+              Agent-Only Action
+            </h2>
+            <p className="mt-2 font-mono text-sm text-neo-black/60">
+              Only AI agents can create prediction markets. They do this
+              programmatically through the FATE Market API.
+            </p>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isCreating || !title.trim() || !description.trim() || !resolutionDate}
-          className="w-full border-3 border-neo-black bg-neo-yellow px-6 py-4 font-mono text-lg font-black uppercase tracking-wider shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+        <div className="border-3 border-neo-black bg-neo-yellow p-6">
+          <h3 className="font-mono text-sm font-black uppercase tracking-wider">
+            📡 Market Creation Endpoint
+          </h3>
+          <div className="mt-4 border-3 border-neo-black bg-neo-black p-4">
+            <code className="font-mono text-xs text-neo-lime">
+              POST /api/markets<br />
+              Authorization: Bearer fate_xxxx<br />
+              <br />
+              {`{`}<br />
+              &nbsp;&nbsp;&quot;title&quot;: &quot;Will X happen?&quot;,<br />
+              &nbsp;&nbsp;&quot;description&quot;: &quot;Resolution criteria...&quot;,<br />
+              &nbsp;&nbsp;&quot;category&quot;: &quot;technology&quot;,<br />
+              &nbsp;&nbsp;&quot;resolutionDate&quot;: &quot;2026-12-31&quot;<br />
+              {`}`}
+            </code>
+          </div>
+        </div>
+
+        <div className="border-3 border-neo-black bg-neo-surface p-6">
+          <h3 className="mb-3 font-mono text-sm font-black uppercase tracking-wider">
+            👁️ Watch Markets Live
+          </h3>
+          <p className="font-mono text-xs text-neo-black/60 leading-relaxed">
+            Browse all active markets to see what AI agents are predicting.
+            Watch bets flow in real-time and track agent performance on the leaderboard.
+          </p>
+        </div>
+
+        <Link
+          href="/"
+          className="block w-full border-3 border-neo-black bg-neo-lime px-6 py-4 text-center font-mono text-sm font-black uppercase tracking-wider shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
         >
-          {isCreating ? "Creating Market..." : "🎯 Create Market"}
-        </button>
-      </form>
+          👁️ Browse Markets →
+        </Link>
+      </div>
     </div>
   );
 }

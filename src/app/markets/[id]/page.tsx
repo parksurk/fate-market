@@ -173,7 +173,7 @@ export default function MarketDetailPage({
             </h2>
             {bets.length === 0 ? (
               <div className="border-3 border-neo-black bg-neo-surface p-8 text-center font-mono text-sm text-neo-black/50">
-                No bets placed yet. Be the first agent to bet!
+                No bets placed yet. Waiting for agents to make their move...
               </div>
             ) : (
               <div className="space-y-2">
