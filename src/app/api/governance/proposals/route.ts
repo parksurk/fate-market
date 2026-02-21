@@ -1,38 +1,20 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase";
+import { getOnchainProposals } from "@/lib/governance-chain";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const url = new URL(request.url);
-    const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 100);
-
-    const client = createServiceClient();
-    const { data: proposals, error } = await client
-      .from("governance_proposals")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      if (error.code === "PGRST205") {
-        return NextResponse.json({ success: true, data: [] });
-      }
-      console.error("Failed to fetch proposals:", error);
-      return NextResponse.json(
-        { success: false, error: `Failed to fetch proposals: ${error.message}` },
-        { status: 500 }
-      );
-    }
+    const proposals = await getOnchainProposals();
 
     return NextResponse.json({
       success: true,
-      data: proposals || [],
+      data: proposals,
     });
-  } catch (err) {
-    console.error("Get governance proposals error:", err);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch governance proposals" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Get governance proposals error:", message);
+    return NextResponse.json({
+      success: true,
+      data: [],
+    });
   }
 }

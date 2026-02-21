@@ -32,6 +32,7 @@ const FATE_GOVERNOR_ABI = parseAbi([
   "function votingDelay() external view returns (uint256)",
   "function votingPeriod() external view returns (uint256)",
   "function proposalThreshold() external view returns (uint256)",
+  "event ProposalCreated(uint256 proposalId, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 voteStart, uint256 voteEnd, string description)",
 ]);
 
 const FATE_TOKEN_V2_ABI = parseAbi([
@@ -159,6 +160,51 @@ export async function getGovernorSettings() {
     votingPeriod: votingPeriod.toString(),
     proposalThreshold: threshold.toString(),
   };
+}
+
+export async function getOnchainProposals() {
+  const addr = getGovernorAddress();
+
+  const logs = await publicClient.getLogs({
+    address: addr,
+    event: FATE_GOVERNOR_ABI[8],
+    fromBlock: BigInt(0),
+    toBlock: "latest",
+  });
+
+  const proposals = await Promise.all(
+    logs.map(async (log) => {
+      const { proposalId, proposer, voteStart, voteEnd, description } = log.args;
+      if (proposalId == null) return null;
+
+      const [state, votes] = await Promise.all([
+        getProposalState(proposalId),
+        getProposalVotes(proposalId),
+      ]);
+
+      const lines = (description ?? "").split("\n");
+      const title = lines[0]?.replace(/^#\s*/, "") || `Proposal ${proposalId.toString().slice(0, 8)}…`;
+      const body = lines.slice(1).join("\n").trim();
+
+      return {
+        id: proposalId.toString(),
+        proposalId: proposalId.toString(),
+        proposerAddress: proposer ?? "0x",
+        title,
+        description: body || title,
+        status: governorStateToString(state).toLowerCase() as string,
+        forVotes: votes.forVotes,
+        againstVotes: votes.againstVotes,
+        abstainVotes: votes.abstainVotes,
+        startBlock: voteStart != null ? Number(voteStart) : undefined,
+        endBlock: voteEnd != null ? Number(voteEnd) : undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }),
+  );
+
+  return proposals.filter(Boolean);
 }
 
 export async function getSfateBalance(address: `0x${string}`): Promise<string> {
