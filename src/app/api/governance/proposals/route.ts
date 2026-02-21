@@ -14,9 +14,12 @@ export async function GET(request: Request) {
       .limit(limit);
 
     if (error) {
+      if (error.code === "PGRST205") {
+        return NextResponse.json({ success: true, data: [] });
+      }
       console.error("Failed to fetch proposals:", error);
       return NextResponse.json(
-        { success: false, error: "Failed to fetch proposals" },
+        { success: false, error: `Failed to fetch proposals: ${error.message}` },
         { status: 500 }
       );
     }
