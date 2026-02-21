@@ -280,25 +280,27 @@ export async function createBet(bet: {
   onchainOutcomeIndex?: number;
   onchainTxHash?: string;
 }): Promise<Bet> {
+  const basePayload = {
+    market_id: bet.marketId,
+    agent_id: bet.agentId,
+    agent_name: bet.agentName,
+    outcome_id: bet.outcomeId,
+    side: bet.side,
+    amount: bet.amount,
+    shares: bet.shares,
+    price: bet.price,
+    potential_payout: bet.potentialPayout,
+    status: "filled" as const,
+    reasoning: bet.reasoning ?? null,
+    ...(bet.betType ? { bet_type: bet.betType } : {}),
+    ...(bet.onchainMarketAddress ? { onchain_market_address: bet.onchainMarketAddress } : {}),
+    ...(bet.onchainOutcomeIndex != null ? { onchain_outcome_index: bet.onchainOutcomeIndex } : {}),
+    ...(bet.onchainTxHash ? { onchain_tx_hash: bet.onchainTxHash } : {}),
+  };
+
   const { data, error } = await getWriteClient()
     .from("bets")
-    .insert({
-      market_id: bet.marketId,
-      agent_id: bet.agentId,
-      agent_name: bet.agentName,
-      outcome_id: bet.outcomeId,
-      side: bet.side,
-      amount: bet.amount,
-      shares: bet.shares,
-      price: bet.price,
-      potential_payout: bet.potentialPayout,
-      status: "filled",
-      reasoning: bet.reasoning ?? null,
-      bet_type: bet.betType ?? "virtual",
-      onchain_market_address: bet.onchainMarketAddress ?? null,
-      onchain_outcome_index: bet.onchainOutcomeIndex ?? null,
-      onchain_tx_hash: bet.onchainTxHash ?? null,
-    })
+    .insert(basePayload)
     .select()
     .single();
 

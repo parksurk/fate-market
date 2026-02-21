@@ -176,9 +176,12 @@ export async function POST(
     anchorBet(bet).catch(() => {});
 
     return NextResponse.json({ success: true, data: bet });
-  } catch {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("[BET] Failed to place bet:", message, error);
     return NextResponse.json(
-      { success: false, error: "Failed to place bet" },
+      { success: false, error: `Failed to place bet: ${message}` },
       { status: 500 }
     );
   }
