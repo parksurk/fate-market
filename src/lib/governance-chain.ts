@@ -42,25 +42,25 @@ const FATE_TOKEN_V2_ABI = parseAbi([
 ]);
 
 function getScorerAddress(): `0x${string}` {
-  const addr = process.env.REPUTATION_SCORER_ADDRESS;
+  const addr = process.env.REPUTATION_SCORER_ADDRESS?.trim();
   if (!addr) throw new Error("REPUTATION_SCORER_ADDRESS not set");
   return addr as `0x${string}`;
 }
 
 function getVaultAddress(): `0x${string}` {
-  const addr = process.env.AGENT_VAULT_ADDRESS;
+  const addr = process.env.AGENT_VAULT_ADDRESS?.trim();
   if (!addr) throw new Error("AGENT_VAULT_ADDRESS not set");
   return addr as `0x${string}`;
 }
 
 function getGovernorAddress(): `0x${string}` {
-  const addr = process.env.FATE_GOVERNOR_ADDRESS;
+  const addr = process.env.FATE_GOVERNOR_ADDRESS?.trim();
   if (!addr) throw new Error("FATE_GOVERNOR_ADDRESS not set");
   return addr as `0x${string}`;
 }
 
 function getTokenV2Address(): `0x${string}` {
-  const addr = process.env.FATE_TOKEN_V2_ADDRESS;
+  const addr = process.env.FATE_TOKEN_V2_ADDRESS?.trim();
   if (!addr) throw new Error("FATE_TOKEN_V2_ADDRESS not set");
   return addr as `0x${string}`;
 }
