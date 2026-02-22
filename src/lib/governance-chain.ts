@@ -165,10 +165,14 @@ export async function getGovernorSettings() {
 export async function getOnchainProposals() {
   const addr = getGovernorAddress();
 
+  const currentBlock = await publicClient.getBlockNumber();
+  // Base Sepolia RPC limits eth_getLogs to 10,000 block range
+  const fromBlock = currentBlock > BigInt(9999) ? currentBlock - BigInt(9999) : BigInt(0);
+
   const logs = await publicClient.getLogs({
     address: addr,
     event: FATE_GOVERNOR_ABI[8],
-    fromBlock: BigInt(0),
+    fromBlock,
     toBlock: "latest",
   });
 
