@@ -13,8 +13,9 @@ export async function GET() {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("Get governance proposals error:", message);
     return NextResponse.json({
-      success: true,
+      success: false,
       data: [],
+      error: message,
     });
   }
 }
