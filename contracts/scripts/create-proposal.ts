@@ -146,6 +146,20 @@ async function main() {
 
   for (const p of proposals) {
     console.log(`\n  Creating: "${p.title}"...`);
+
+    const proposalId = await governor.hashProposal(
+      p.targets,
+      p.values,
+      p.calldatas,
+      ethers.keccak256(ethers.toUtf8Bytes(p.description)),
+    );
+    const state = await governor.state(proposalId).catch(() => null);
+    if (state !== null) {
+      console.log(`  Already exists (state=${state}), skipping.`);
+      proposalIds.push(proposalId.toString());
+      continue;
+    }
+
     const tx = await governor.propose(
       p.targets,
       p.values,
@@ -169,9 +183,9 @@ async function main() {
       })
       .find((e: { name: string } | null) => e?.name === "ProposalCreated");
 
-    const proposalId = event?.args?.proposalId?.toString() ?? "unknown";
-    proposalIds.push(proposalId);
-    console.log(`  ✓ Proposal ID: ${proposalId}`);
+    const createdId = event?.args?.proposalId?.toString() ?? proposalId.toString();
+    proposalIds.push(createdId);
+    console.log(`  ✓ Proposal ID: ${createdId}`);
 
     // Wait between proposals to avoid nonce collision
     if (proposals.indexOf(p) < proposals.length - 1) {
