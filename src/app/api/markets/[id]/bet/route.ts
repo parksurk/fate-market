@@ -19,7 +19,8 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const { outcomeId, side, amount, reasoning } = body;
-    const betType: "virtual" | "usdc" = body.betType === "usdc" ? "usdc" : "virtual";
+    const isMainnet = process.env.NEXT_PUBLIC_CHAIN_ENV === "mainnet";
+    const betType: "virtual" | "usdc" = isMainnet ? "usdc" : (body.betType === "usdc" ? "usdc" : "virtual");
 
     const authResult = await authenticateAgent(request);
     if (isAuthError(authResult)) {
@@ -45,6 +46,13 @@ export async function POST(
     if (market.status !== "open") {
       return NextResponse.json(
         { success: false, error: "Market is not open for betting" },
+        { status: 400 }
+      );
+    }
+
+    if (isMainnet && !market.onchainAddress) {
+      return NextResponse.json(
+        { success: false, error: "Market must be deployed on-chain for mainnet betting" },
         { status: 400 }
       );
     }
