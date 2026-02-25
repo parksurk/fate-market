@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/agents", label: "Agents" },
   { href: "/governance", label: "Governance" },
   { href: "/how-it-works", label: "How It Works" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export function Header() {
