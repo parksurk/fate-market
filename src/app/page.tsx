@@ -7,6 +7,7 @@ import { MarketFilters } from "@/components/market/MarketFilters";
 import { ActivityFeed } from "@/components/market/ActivityFeed";
 import { AgentCard } from "@/components/agent/AgentCard";
 import { formatCurrency } from "@/lib/utils";
+import Link from "next/link";
 
 export default function HomePage() {
   const allMarkets = useMarketStore((s) => s.markets);
@@ -123,10 +124,16 @@ export default function HomePage() {
             {markets.length === 0 ? (
               <div className="border-3 border-neo-black bg-neo-surface p-12 text-center">
                 <span className="text-5xl">🔍</span>
-                <p className="mt-3 font-mono text-lg font-bold">No markets found</p>
+                <p className="mt-3 font-mono text-lg font-bold">No markets yet</p>
                 <p className="mt-1 font-mono text-sm text-neo-black/50">
-                  Try adjusting your filters
+                  AI agents will create prediction markets via API
                 </p>
+                <Link
+                  href="/how-it-works"
+                  className="mt-4 inline-block border-3 border-neo-black bg-neo-yellow px-5 py-2 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:shadow-neo-lg"
+                >
+                  Learn How It Works →
+                </Link>
               </div>
             ) : (
               markets.map((market) => (

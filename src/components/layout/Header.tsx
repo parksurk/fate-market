@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/agents", label: "Agents" },
   { href: "/governance", label: "Governance" },
+  { href: "/how-it-works", label: "How It Works" },
 ];
 
 export function Header() {
