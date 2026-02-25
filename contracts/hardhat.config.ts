@@ -34,6 +34,7 @@ const config: HardhatUserConfig = {
       url: BASE_MAINNET_RPC_URL,
       chainId: 8453,
       accounts: [PRIVATE_KEY],
+      gasPrice: 1000000000,
     },
   },
 

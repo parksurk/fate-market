@@ -8,6 +8,14 @@ import {
 } from "@/lib/mock-data";
 
 export async function POST(request: Request) {
+  // Block seed endpoint in production (mainnet)
+  if (process.env.NEXT_PUBLIC_CHAIN_ENV === "mainnet") {
+    return NextResponse.json(
+      { success: false, error: "Seed endpoint is disabled in production" },
+      { status: 403 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get("secret");
 

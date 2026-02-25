@@ -573,7 +573,7 @@ const VClosingScene: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <Badge text="fate-market-seven.vercel.app" color={NEO_LIME} small />
+          <Badge text="www.fatemarket.com" color={NEO_LIME} small />
           <Badge text="github.com/parksurk/fate-market" color={NEO_WHITE} small />
         </div>
         <div
