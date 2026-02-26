@@ -9,7 +9,7 @@ import {
 } from "@/lib/db";
 import { authenticateAgent, isAuthError } from "@/lib/auth";
 import { anchorBet } from "@/lib/bet-anchor";
-import { getUsdcBalance, placeBetOnChain, marketIdToBytes32 } from "@/lib/market-chain";
+import { placeBetOnChain, marketIdToBytes32 } from "@/lib/market-chain";
 
 export async function POST(
   request: Request,
@@ -104,12 +104,12 @@ export async function POST(
       // Generate deterministic offchainBetId for idempotency
       const offchainBetId = marketIdToBytes32(`${id}-${agentId}-${Date.now()}`);
 
-      // Place bet on-chain via relayer (checks relayer balance + approval internally)
+      // Place bet on-chain via relayer (pulls USDC from agent wallet, then places bet)
       const { txHash: onchainTxHash } = await placeBetOnChain({
         marketAddress: market.onchainAddress as `0x${string}`,
         outcome: outcomeIndex,
         amount: usdcAmount,
-        receiver: agent.walletAddress as `0x${string}`,
+        agentWallet: agent.walletAddress as `0x${string}`,
         offchainBetId,
       });
 

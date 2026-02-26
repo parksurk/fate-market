@@ -37,6 +37,7 @@ const ERC20_ABI = parseAbi([
   "function approve(address spender, uint256 amount) external returns (bool)",
   "function allowance(address owner, address spender) external view returns (uint256)",
   "function balanceOf(address account) external view returns (uint256)",
+  "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
 ]);
 
 function getFactoryAddress(): `0x${string}` {
@@ -180,36 +181,59 @@ export async function ensureUsdcApproval(
 }
 
 /**
- * Place a bet on-chain via relayer.
- * 1. Checks relayer USDC balance
- * 2. Ensures USDC approval to market contract
- * 3. Calls PredictionMarket.placeBet()
- * 4. Waits for tx receipt
+ * Place a bet on-chain via relayer on behalf of an agent.
  *
- * @param receiver - Agent's wallet address (position is tracked under this address)
+ * Economic flow: Agent's USDC → Relayer → Market Contract
+ *   1. Verify agent wallet has enough USDC
+ *   2. Verify agent has approved relayer to spend USDC
+ *   3. Pull USDC from agent wallet to relayer (transferFrom)
+ *   4. Ensure relayer has approved market contract
+ *   5. Call PredictionMarket.placeBet()
+ *   6. Wait for tx receipt
+ *
+ * @param agentWallet - Agent's linked wallet (USDC source & position receiver)
  */
 export async function placeBetOnChain(params: {
   marketAddress: `0x${string}`;
   outcome: number;
   amount: bigint;
-  receiver: `0x${string}`;
+  agentWallet: `0x${string}`;
   offchainBetId: `0x${string}`;
-}): Promise<{ txHash: `0x${string}` }> {
+}): Promise<{ txHash: `0x${string}`; pullTxHash: `0x${string}` }> {
   const wallet = getRelayerWallet();
   const relayerAddress = wallet.account.address;
 
-  // 1. Verify relayer has enough USDC
-  const relayerBalance = await getUsdcBalance(relayerAddress);
-  if (relayerBalance < params.amount) {
+  // 1. Verify agent wallet has enough USDC
+  const agentBalance = await getUsdcBalance(params.agentWallet);
+  if (agentBalance < params.amount) {
     throw new Error(
-      `Relayer USDC balance insufficient: has ${relayerBalance}, needs ${params.amount}`
+      `Agent USDC balance insufficient: has ${agentBalance}, needs ${params.amount}`
     );
   }
 
-  // 2. Ensure USDC approval to market contract
+  // 2. Verify agent has approved relayer to spend their USDC
+  const agentAllowance = await getUsdcAllowance(params.agentWallet, relayerAddress);
+  if (agentAllowance < params.amount) {
+    throw new Error(
+      `Agent has not approved enough USDC for relayer. ` +
+      `Approved: ${agentAllowance}, needed: ${params.amount}. ` +
+      `Agent wallet owner must call USDC.approve(${relayerAddress}, amount) on Base.`
+    );
+  }
+
+  // 3. Pull USDC from agent wallet to relayer
+  const pullTxHash = await wallet.writeContract({
+    address: getUsdcAddress(),
+    abi: ERC20_ABI,
+    functionName: "transferFrom",
+    args: [params.agentWallet, relayerAddress, params.amount],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: pullTxHash });
+
+  // 4. Ensure relayer has approved market contract to spend USDC
   await ensureUsdcApproval(params.marketAddress, params.amount);
 
-  // 3. Place bet on-chain
+  // 5. Place bet on-chain (USDC: relayer → market, position: agent wallet)
   const txHash = await wallet.writeContract({
     address: params.marketAddress,
     abi: PREDICTION_MARKET_ABI,
@@ -217,15 +241,13 @@ export async function placeBetOnChain(params: {
     args: [
       params.outcome,
       params.amount,
-      params.receiver,
+      params.agentWallet,
       params.offchainBetId,
     ],
   });
-
-  // 4. Wait for confirmation
   await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-  return { txHash };
+  return { txHash, pullTxHash };
 }
 
 export { CHAIN, PREDICTION_MARKET_ABI, ERC20_ABI, MANUAL_ORACLE_ABI, MARKET_FACTORY_ABI };
