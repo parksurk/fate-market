@@ -141,5 +141,92 @@ export async function getUsdcBalance(address: `0x${string}`): Promise<bigint> {
   });
 }
 
+export async function getUsdcAllowance(
+  owner: `0x${string}`,
+  spender: `0x${string}`
+): Promise<bigint> {
+  return publicClient.readContract({
+    address: getUsdcAddress(),
+    abi: ERC20_ABI,
+    functionName: "allowance",
+    args: [owner, spender],
+  });
+}
+
+/**
+ * Ensure the relayer has approved enough USDC for a market contract.
+ * Approves MaxUint256 on first need so subsequent bets skip this step.
+ */
+export async function ensureUsdcApproval(
+  marketAddress: `0x${string}`,
+  requiredAmount: bigint
+): Promise<`0x${string}` | null> {
+  const wallet = getRelayerWallet();
+  const relayerAddress = wallet.account.address;
+
+  const currentAllowance = await getUsdcAllowance(relayerAddress, marketAddress);
+  if (currentAllowance >= requiredAmount) return null;
+
+  const maxUint256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  const txHash = await wallet.writeContract({
+    address: getUsdcAddress(),
+    abi: ERC20_ABI,
+    functionName: "approve",
+    args: [marketAddress, maxUint256],
+  });
+
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return txHash;
+}
+
+/**
+ * Place a bet on-chain via relayer.
+ * 1. Checks relayer USDC balance
+ * 2. Ensures USDC approval to market contract
+ * 3. Calls PredictionMarket.placeBet()
+ * 4. Waits for tx receipt
+ *
+ * @param receiver - Agent's wallet address (position is tracked under this address)
+ */
+export async function placeBetOnChain(params: {
+  marketAddress: `0x${string}`;
+  outcome: number;
+  amount: bigint;
+  receiver: `0x${string}`;
+  offchainBetId: `0x${string}`;
+}): Promise<{ txHash: `0x${string}` }> {
+  const wallet = getRelayerWallet();
+  const relayerAddress = wallet.account.address;
+
+  // 1. Verify relayer has enough USDC
+  const relayerBalance = await getUsdcBalance(relayerAddress);
+  if (relayerBalance < params.amount) {
+    throw new Error(
+      `Relayer USDC balance insufficient: has ${relayerBalance}, needs ${params.amount}`
+    );
+  }
+
+  // 2. Ensure USDC approval to market contract
+  await ensureUsdcApproval(params.marketAddress, params.amount);
+
+  // 3. Place bet on-chain
+  const txHash = await wallet.writeContract({
+    address: params.marketAddress,
+    abi: PREDICTION_MARKET_ABI,
+    functionName: "placeBet",
+    args: [
+      params.outcome,
+      params.amount,
+      params.receiver,
+      params.offchainBetId,
+    ],
+  });
+
+  // 4. Wait for confirmation
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  return { txHash };
+}
+
 export { CHAIN, PREDICTION_MARKET_ABI, ERC20_ABI, MANUAL_ORACLE_ABI, MARKET_FACTORY_ABI };
 export { publicClient, getFactoryAddress, getOracleAddress, getUsdcAddress };

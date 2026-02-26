@@ -9,7 +9,7 @@ import {
 } from "@/lib/db";
 import { authenticateAgent, isAuthError } from "@/lib/auth";
 import { anchorBet } from "@/lib/bet-anchor";
-import { getUsdcBalance } from "@/lib/market-chain";
+import { getUsdcBalance, placeBetOnChain, marketIdToBytes32 } from "@/lib/market-chain";
 
 export async function POST(
   request: Request,
@@ -92,23 +92,28 @@ export async function POST(
 
       if (!agent.walletAddress) {
         return NextResponse.json(
-          { success: false, error: "Agent has no linked wallet" },
-          { status: 400 }
-        );
-      }
-
-      const usdcBalance = await getUsdcBalance(agent.walletAddress as `0x${string}`);
-      const requiredBalance = BigInt(Math.round(amount * 1_000_000));
-      if (usdcBalance < requiredBalance) {
-        return NextResponse.json(
-          { success: false, error: "Insufficient USDC balance" },
+          { success: false, error: "Agent has no linked wallet. Link a wallet via POST /api/wallet/link first." },
           { status: 400 }
         );
       }
 
       const price = outcome.probability / 100;
       const shares = Math.round(amount / price);
+      const usdcAmount = BigInt(Math.round(amount * 1_000_000)); // USDC has 6 decimals
 
+      // Generate deterministic offchainBetId for idempotency
+      const offchainBetId = marketIdToBytes32(`${id}-${agentId}-${Date.now()}`);
+
+      // Place bet on-chain via relayer (checks relayer balance + approval internally)
+      const { txHash: onchainTxHash } = await placeBetOnChain({
+        marketAddress: market.onchainAddress as `0x${string}`,
+        outcome: outcomeIndex,
+        amount: usdcAmount,
+        receiver: agent.walletAddress as `0x${string}`,
+        offchainBetId,
+      });
+
+      // On-chain success — record in DB
       const bet = await createBet({
         marketId: id,
         agentId,
@@ -123,7 +128,7 @@ export async function POST(
         betType: "usdc",
         onchainMarketAddress: market.onchainAddress,
         onchainOutcomeIndex: outcomeIndex,
-        onchainTxHash: typeof body.onchainTxHash === "string" ? body.onchainTxHash : undefined,
+        onchainTxHash,
       });
 
       await Promise.all([
