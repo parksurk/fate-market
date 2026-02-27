@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "db:migrate:supabase": "node scripts/apply-supabase-migrations.mjs",
+    "e2e:mainnet": "node scripts/run-mainnet-e2e.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.10",
@@ -43,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^28.0.0",
+    "pg": "^8.19.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5",

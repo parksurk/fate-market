@@ -11,6 +11,16 @@ import { authenticateAgent, isAuthError } from "@/lib/auth";
 import { anchorBet } from "@/lib/bet-anchor";
 import { placeBetOnChain, marketIdToBytes32 } from "@/lib/market-chain";
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const candidate = error as { message?: unknown; shortMessage?: unknown; details?: unknown };
+    const msg = candidate.message ?? candidate.shortMessage ?? candidate.details;
+    if (typeof msg === "string" && msg.length > 0) return msg;
+  }
+  return "Unknown error";
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -19,6 +29,8 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const { outcomeId, side, amount, reasoning } = body;
+    const bodyMarketAddress = typeof body.marketAddress === "string" ? body.marketAddress : undefined;
+    const bodyWalletAddress = typeof body.walletAddress === "string" ? body.walletAddress : undefined;
     const isMainnet = process.env.NEXT_PUBLIC_CHAIN_ENV === "mainnet";
     const betType: "virtual" | "usdc" = isMainnet ? "usdc" : (body.betType === "usdc" ? "usdc" : "virtual");
 
@@ -50,7 +62,7 @@ export async function POST(
       );
     }
 
-    if (isMainnet && !market.onchainAddress) {
+    if (isMainnet && !market.onchainAddress && !bodyMarketAddress) {
       return NextResponse.json(
         { success: false, error: "Market must be deployed on-chain for mainnet betting" },
         { status: 400 }
@@ -83,14 +95,16 @@ export async function POST(
     const outcomeIndex = market.outcomes.findIndex((o) => o.id === outcomeId);
 
     if (betType === "usdc") {
-      if (!market.onchainAddress) {
+      const marketAddress = (market.onchainAddress ?? bodyMarketAddress) as `0x${string}` | undefined;
+      if (!marketAddress) {
         return NextResponse.json(
           { success: false, error: "Market is not deployed on-chain" },
           { status: 400 }
         );
       }
 
-      if (!agent.walletAddress) {
+      const agentWalletAddress = agent.walletAddress ?? bodyWalletAddress;
+      if (!agentWalletAddress) {
         return NextResponse.json(
           { success: false, error: "Agent has no linked wallet. Link a wallet via POST /api/wallet/link first." },
           { status: 400 }
@@ -99,53 +113,76 @@ export async function POST(
 
       const price = outcome.probability / 100;
       const shares = Math.round(amount / price);
-      const usdcAmount = BigInt(Math.round(amount * 1_000_000)); // USDC has 6 decimals
+      const usdcAmount = BigInt(Math.round(amount * 1_000_000));
 
-      // Generate deterministic offchainBetId for idempotency
       const offchainBetId = marketIdToBytes32(`${id}-${agentId}-${Date.now()}`);
 
-      // Place bet on-chain via relayer (pulls USDC from agent wallet, then places bet)
-      const { txHash: onchainTxHash } = await placeBetOnChain({
-        marketAddress: market.onchainAddress as `0x${string}`,
-        outcome: outcomeIndex,
-        amount: usdcAmount,
-        agentWallet: agent.walletAddress as `0x${string}`,
-        offchainBetId,
-      });
+      let persistedBetId: string | undefined;
 
-      // On-chain success — record in DB
-      const bet = await createBet({
-        marketId: id,
-        agentId,
-        agentName: agent.displayName,
-        outcomeId,
-        side,
-        amount,
-        shares,
-        price,
-        potentialPayout: shares,
-        reasoning: typeof reasoning === "string" ? reasoning.slice(0, 500) : undefined,
-        betType: "usdc",
-        onchainMarketAddress: market.onchainAddress,
-        onchainOutcomeIndex: outcomeIndex,
-        onchainTxHash,
-      });
+      try {
+        const { txHash: onchainTxHash, pullTxHash } = await placeBetOnChain({
+          marketAddress,
+          outcome: outcomeIndex,
+          amount: usdcAmount,
+          agentWallet: agentWalletAddress as `0x${string}`,
+          offchainBetId,
+        });
 
-      await Promise.all([
-        updateMarketAfterBet(id, outcomeId, amount, shares, side),
-        createActivity({
-          marketId: id,
-          agentId,
-          agentName: agent.displayName,
-          agentAvatar: agent.avatar,
-          type: "bet",
-          side,
-          amount,
-          outcomeLabel: outcome.label,
-        }),
-      ]);
+        try {
+          const persisted = await createBet({
+            marketId: id,
+            agentId,
+            agentName: agent.displayName,
+            outcomeId,
+            side,
+            amount,
+            shares,
+            price,
+            potentialPayout: shares,
+            reasoning: typeof reasoning === "string" ? reasoning.slice(0, 500) : undefined,
+            betType: "usdc",
+            onchainMarketAddress: marketAddress,
+            onchainOutcomeIndex: outcomeIndex,
+            onchainTxHash,
+            onchainPullTxHash: pullTxHash,
+            offchainBetId,
+            status: "filled",
+          });
+          persistedBetId = persisted.id;
+        } catch {
+        }
 
-      return NextResponse.json({ success: true, data: bet });
+        await Promise.all([
+          updateMarketAfterBet(id, outcomeId, amount, shares, side),
+          createActivity({
+            marketId: id,
+            agentId,
+            agentName: agent.displayName,
+            agentAvatar: agent.avatar,
+            type: "bet",
+            side,
+            amount,
+            outcomeLabel: outcome.label,
+          }),
+        ]);
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: persistedBetId,
+            status: "filled",
+            onchainTxHash,
+            onchainPullTxHash: pullTxHash,
+            offchainBetId,
+          },
+        });
+      } catch (chainError: unknown) {
+        const chainMsg = toErrorMessage(chainError);
+        return NextResponse.json(
+          { success: false, error: `On-chain bet failed: ${chainMsg}` },
+          { status: 502 }
+        );
+      }
     }
 
     if (agent.balance < amount) {
@@ -190,8 +227,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, data: bet });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error";
+    const message = toErrorMessage(error);
     console.error("[BET] Failed to place bet:", message, error);
     return NextResponse.json(
       { success: false, error: `Failed to place bet: ${message}` },

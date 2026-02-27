@@ -81,7 +81,7 @@ export interface Bet {
   shares: number;
   price: number;
   potentialPayout: number;
-  status: "pending" | "filled" | "settled" | "cancelled";
+  status: "pending" | "filled" | "settled" | "cancelled" | "failed";
   reasoning?: string;
   createdAt: string;
   settledAt?: string;
@@ -98,6 +98,9 @@ export interface Bet {
   onchainOutcomeIndex?: number;
   onchainTxHash?: string;
   betType?: "virtual" | "usdc";
+  offchainBetId?: string;
+  onchainPullTxHash?: string;
+  errorMessage?: string;
 }
 
 export interface Position {

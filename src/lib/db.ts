@@ -12,6 +12,15 @@ function getWriteClient() {
   return createServiceClient();
 }
 
+function getMissingColumn(error: unknown): string | undefined {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message: unknown }).message)
+      : "";
+  const match = message.match(/Could not find the '([^']+)' column/);
+  return match?.[1];
+}
+
 function toAgent(row: Record<string, unknown>): Agent {
   return {
     id: row.id as string,
@@ -100,6 +109,9 @@ function toBet(row: Record<string, unknown>): Bet {
     onchainOutcomeIndex: row.onchain_outcome_index != null ? Number(row.onchain_outcome_index) : undefined,
     onchainTxHash: (row.onchain_tx_hash as string | null) ?? undefined,
     betType: (row.bet_type as Bet["betType"]) ?? undefined,
+    offchainBetId: (row.offchain_bet_id as string | null) ?? undefined,
+    onchainPullTxHash: (row.onchain_pull_tx_hash as string | null) ?? undefined,
+    errorMessage: (row.error_message as string | null) ?? undefined,
   };
 }
 
@@ -279,8 +291,11 @@ export async function createBet(bet: {
   onchainMarketAddress?: string;
   onchainOutcomeIndex?: number;
   onchainTxHash?: string;
+  onchainPullTxHash?: string;
+  offchainBetId?: string;
+  status?: "pending" | "filled";
 }): Promise<Bet> {
-  const basePayload = {
+  const payload = {
     market_id: bet.marketId,
     agent_id: bet.agentId,
     agent_name: bet.agentName,
@@ -290,22 +305,84 @@ export async function createBet(bet: {
     shares: bet.shares,
     price: bet.price,
     potential_payout: bet.potentialPayout,
-    status: "filled" as const,
+    status: (bet.status ?? "filled") as string,
     reasoning: bet.reasoning ?? null,
     ...(bet.betType ? { bet_type: bet.betType } : {}),
     ...(bet.onchainMarketAddress ? { onchain_market_address: bet.onchainMarketAddress } : {}),
     ...(bet.onchainOutcomeIndex != null ? { onchain_outcome_index: bet.onchainOutcomeIndex } : {}),
     ...(bet.onchainTxHash ? { onchain_tx_hash: bet.onchainTxHash } : {}),
+    ...(bet.onchainPullTxHash ? { onchain_pull_tx_hash: bet.onchainPullTxHash } : {}),
+    ...(bet.offchainBetId ? { offchain_bet_id: bet.offchainBetId } : {}),
   };
 
-  const { data, error } = await getWriteClient()
-    .from("bets")
-    .insert(basePayload)
-    .select()
-    .single();
+  while (true) {
+    const { data, error } = await getWriteClient()
+      .from("bets")
+      .insert(payload)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return toBet(data as Record<string, unknown>);
+    if (!error) return toBet(data as Record<string, unknown>);
+
+    const missing = getMissingColumn(error);
+    if (missing && missing in payload) {
+      delete payload[missing as keyof typeof payload];
+      continue;
+    }
+
+    const message = String(error.message ?? "");
+    if (message.includes("bets_status_check") && "status" in payload) {
+      delete (payload as Record<string, unknown>).status;
+      continue;
+    }
+
+    throw error;
+  }
+}
+
+export async function updateBetStatus(
+  betId: string,
+  status: "pending" | "filled" | "failed" | "cancelled",
+  updates?: {
+    onchainTxHash?: string;
+    onchainPullTxHash?: string;
+    errorMessage?: string;
+  }
+): Promise<void> {
+  const payload: Record<string, unknown> = { status };
+  if (updates?.onchainTxHash) payload.onchain_tx_hash = updates.onchainTxHash;
+  if (updates?.onchainPullTxHash) payload.onchain_pull_tx_hash = updates.onchainPullTxHash;
+  if (updates?.errorMessage) payload.error_message = updates.errorMessage;
+
+  const { error } = await getWriteClient()
+    .from("bets")
+    .update(payload)
+    .eq("id", betId);
+
+  if (!error) return;
+
+  const missing = getMissingColumn(error);
+  if (missing && missing in payload) {
+    delete payload[missing];
+    const { error: retryError } = await getWriteClient()
+      .from("bets")
+      .update(payload)
+      .eq("id", betId);
+    if (!retryError) return;
+    throw retryError;
+  }
+
+  const message = String(error.message ?? "");
+  if (status === "failed" && message.includes("bets_status_check")) {
+    const { error: retryError } = await getWriteClient()
+      .from("bets")
+      .update({ ...payload, status: "cancelled" })
+      .eq("id", betId);
+    if (!retryError) return;
+    throw retryError;
+  }
+
+  throw error;
 }
 
 export async function createActivity(activity: {

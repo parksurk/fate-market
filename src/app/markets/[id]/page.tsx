@@ -18,6 +18,7 @@ import {
   getCategoryEmoji,
   cn,
 } from "@/lib/utils";
+import { useContentLanguage } from "@/components/providers/LanguageProvider";
 
 export default function MarketDetailPage({
   params,
@@ -25,6 +26,7 @@ export default function MarketDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { lang } = useContentLanguage();
   const market = useMarketStore((s) => s.getMarketById(id));
   const allBets = useMarketStore((s) => s.bets);
   const allActivities = useMarketStore((s) => s.activities);
@@ -36,13 +38,13 @@ export default function MarketDetailPage({
       <div className="mx-auto max-w-7xl px-4 py-12 text-center">
         <span className="text-6xl">🚫</span>
         <h1 className="mt-4 font-display text-3xl font-black uppercase">
-          Market Not Found
+          {lang === "en" ? "Market Not Found" : "마켓을 찾을 수 없습니다"}
         </h1>
         <Link
           href="/"
           className="mt-4 inline-block border-3 border-neo-black bg-neo-yellow px-6 py-3 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
         >
-          ← Back to Markets
+          {lang === "en" ? "← Back to Markets" : "← 마켓으로 돌아가기"}
         </Link>
       </div>
     );
@@ -56,7 +58,7 @@ export default function MarketDetailPage({
         href="/"
         className="mb-4 inline-block font-mono text-sm font-bold uppercase text-neo-black/50 hover:text-neo-black"
       >
-        ← Back to Markets
+        {lang === "en" ? "← Back to Markets" : "← 마켓으로 돌아가기"}
       </Link>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -119,10 +121,10 @@ export default function MarketDetailPage({
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <StatBox label="Volume" value={formatCurrency(market.totalVolume)} />
-              <StatBox label="Total Bets" value={formatNumber(market.totalBets)} />
-              <StatBox label="Traders" value={market.uniqueTraders.toString()} />
-              <StatBox label="Resolves" value={formatDate(market.resolutionDate)} />
+              <StatBox label={lang === "en" ? "Volume" : "거래량"} value={formatCurrency(market.totalVolume)} />
+              <StatBox label={lang === "en" ? "Total Bets" : "총 베팅"} value={formatNumber(market.totalBets)} />
+              <StatBox label={lang === "en" ? "Traders" : "참여자"} value={market.uniqueTraders.toString()} />
+              <StatBox label={lang === "en" ? "Resolves" : "종료일"} value={formatDate(market.resolutionDate)} />
             </div>
           </div>
 
@@ -134,7 +136,7 @@ export default function MarketDetailPage({
             </div>
             <div className="space-y-3 p-4 font-mono text-sm">
               <div className="flex justify-between">
-                <span className="text-neo-black/60">Created by</span>
+                <span className="text-neo-black/60">{lang === "en" ? "Created by" : "생성자"}</span>
                 <Link
                   href={`/agents/${market.creatorId}`}
                   className="font-bold hover:text-neo-blue"
@@ -143,15 +145,15 @@ export default function MarketDetailPage({
                 </Link>
               </div>
               <div className="flex justify-between">
-                <span className="text-neo-black/60">Created</span>
+                <span className="text-neo-black/60">{lang === "en" ? "Created" : "생성 시점"}</span>
                 <span className="font-bold">{formatRelativeTime(market.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neo-black/60">Resolution Date</span>
+                <span className="text-neo-black/60">{lang === "en" ? "Resolution Date" : "결과 확정일"}</span>
                 <span className="font-bold">{formatDate(market.resolutionDate)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neo-black/60">Last Updated</span>
+                <span className="text-neo-black/60">{lang === "en" ? "Last Updated" : "최근 업데이트"}</span>
                 <span className="font-bold">{formatRelativeTime(market.updatedAt)}</span>
               </div>
               <div className="flex flex-wrap gap-1 pt-2">

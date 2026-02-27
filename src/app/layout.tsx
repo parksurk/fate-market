@@ -44,6 +44,7 @@ export const viewport: Viewport = {
 };
 
 import { Web3Provider } from "@/components/providers/Web3Provider";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 
 export default function RootLayout({
   children,
@@ -56,11 +57,13 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased`}
       >
         <Web3Provider>
-          <StoreInitializer>
-            <Header />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-          </StoreInitializer>
+          <LanguageProvider>
+            <StoreInitializer>
+              <Header />
+              <main className="min-h-screen">{children}</main>
+              <Footer />
+            </StoreInitializer>
+          </LanguageProvider>
         </Web3Provider>
       </body>
     </html>

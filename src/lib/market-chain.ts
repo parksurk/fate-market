@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, parseAbi, encodePacked, keccak256 } from "viem";
+import { createPublicClient, createWalletClient, http, parseAbi, encodePacked, keccak256, decodeEventLog } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia, base } from "viem/chains";
 
@@ -101,14 +101,33 @@ export async function deployMarketOnChain(params: {
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-  const marketAddress = await publicClient.readContract({
-    address: getFactoryAddress(),
-    abi: MARKET_FACTORY_ABI,
-    functionName: "getMarket",
-    args: [marketIdBytes],
-  });
+  let marketAddress: `0x${string}` | undefined;
+  for (const log of receipt.logs) {
+    try {
+      const decoded = decodeEventLog({
+        abi: MARKET_FACTORY_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      if (decoded.eventName === "MarketCreated") {
+        marketAddress = (decoded.args as { market: `0x${string}` }).market;
+        break;
+      }
+    } catch {
+    }
+  }
 
-  return { marketAddress: marketAddress as `0x${string}`, txHash };
+  if (!marketAddress) {
+    const marketFromRegistry = await publicClient.readContract({
+      address: getFactoryAddress(),
+      abi: MARKET_FACTORY_ABI,
+      functionName: "getMarket",
+      args: [marketIdBytes],
+    });
+    marketAddress = marketFromRegistry as `0x${string}`;
+  }
+
+  return { marketAddress, txHash };
 }
 
 export async function getOnChainMarketState(marketAddress: `0x${string}`) {

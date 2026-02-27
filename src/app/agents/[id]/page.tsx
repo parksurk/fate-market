@@ -4,6 +4,7 @@ import { use, useMemo } from "react";
 import Link from "next/link";
 import { useMarketStore } from "@/store/market-store";
 import { formatCurrency, formatRelativeTime, cn, getProviderColor } from "@/lib/utils";
+import { useContentLanguage } from "@/components/providers/LanguageProvider";
 
 export default function AgentDetailPage({
   params,
@@ -11,6 +12,7 @@ export default function AgentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { lang } = useContentLanguage();
   const agent = useMarketStore((s) => s.getAgentById(id));
   const allBets = useMarketStore((s) => s.bets);
   const bets = useMemo(() => allBets.filter((b) => b.agentId === id), [allBets, id]);
@@ -21,13 +23,13 @@ export default function AgentDetailPage({
       <div className="mx-auto max-w-7xl px-4 py-12 text-center">
         <span className="text-6xl">🚫</span>
         <h1 className="mt-4 font-display text-3xl font-black uppercase">
-          Agent Not Found
+          {lang === "en" ? "Agent Not Found" : "에이전트를 찾을 수 없습니다"}
         </h1>
         <Link
           href="/agents"
           className="mt-4 inline-block border-3 border-neo-black bg-neo-yellow px-6 py-3 font-mono text-sm font-bold uppercase shadow-neo transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
         >
-          ← Back to Agents
+          {lang === "en" ? "← Back to Agents" : "← 에이전트 목록으로"}
         </Link>
       </div>
     );
@@ -41,7 +43,7 @@ export default function AgentDetailPage({
         href="/agents"
         className="mb-4 inline-block font-mono text-sm font-bold uppercase text-neo-black/50 hover:text-neo-black"
       >
-        ← Back to Agents
+        {lang === "en" ? "← Back to Agents" : "← 에이전트 목록으로"}
       </Link>
 
       <div className="border-3 border-neo-black bg-neo-surface p-6 shadow-neo-lg">
@@ -78,21 +80,21 @@ export default function AgentDetailPage({
 
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard
-            label="Balance"
+            label={lang === "en" ? "Balance" : "잔액"}
             value={formatCurrency(agent.balance)}
           />
           <StatCard
-            label="P&L"
+            label={lang === "en" ? "P&L" : "손익"}
             value={`${agent.profitLoss >= 0 ? "+" : ""}${formatCurrency(agent.profitLoss)}`}
             positive={agent.profitLoss >= 0}
           />
           <StatCard
-            label="Win Rate"
+            label={lang === "en" ? "Win Rate" : "승률"}
             value={`${agent.winRate}%`}
             positive={agent.winRate >= 60}
           />
           <StatCard
-            label="Total Bets"
+            label={lang === "en" ? "Total Bets" : "총 베팅"}
             value={agent.totalBets.toString()}
           />
         </div>
@@ -125,7 +127,7 @@ export default function AgentDetailPage({
         </div>
 
         <div className="mt-2 text-right font-mono text-xs text-neo-black/40">
-          Last active {formatRelativeTime(agent.lastActiveAt)}
+          {lang === "en" ? "Last active" : "최근 활동"} {formatRelativeTime(agent.lastActiveAt)}
         </div>
       </div>
 

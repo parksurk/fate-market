@@ -11,6 +11,15 @@ import {
 } from "@/lib/market-chain";
 import { keccak256, toBytes, decodeEventLog } from "viem";
 
+function getMissingColumn(error: unknown): string | undefined {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message: unknown }).message)
+      : "";
+  const match = message.match(/Could not find the '([^']+)' column/);
+  return match?.[1];
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -114,20 +123,31 @@ export async function POST(
     const disputeDeadline = new Date(Date.now() + 3600 * 1000).toISOString();
 
     const client = createServiceClient();
-    const { error: updateError } = await client
-      .from("markets")
-      .update({
-        oracle_request_id: requestId,
-        resolution_tx_hash: resolveTxHash,
-        resolution_evidence_hash: evidenceHashBytes,
-        onchain_status: "proposed",
-        dispute_deadline: disputeDeadline,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    const updatePayload: Record<string, unknown> = {
+      oracle_request_id: requestId,
+      resolution_tx_hash: resolveTxHash,
+      resolution_evidence_hash: evidenceHashBytes,
+      onchain_status: "proposed",
+      dispute_deadline: disputeDeadline,
+      updated_at: new Date().toISOString(),
+    };
 
-    if (updateError) {
+    while (true) {
+      const { error: updateError } = await client
+        .from("markets")
+        .update(updatePayload)
+        .eq("id", id);
+
+      if (!updateError) break;
+
+      const missing = getMissingColumn(updateError);
+      if (missing && missing in updatePayload) {
+        delete updatePayload[missing];
+        continue;
+      }
+
       console.error("Failed to update market after resolve:", updateError);
+      break;
     }
 
     return NextResponse.json({

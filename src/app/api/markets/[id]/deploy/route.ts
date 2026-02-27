@@ -5,6 +5,15 @@ import { deployMarketOnChain, marketIdToBytes32 } from "@/lib/market-chain";
 import { createServiceClient } from "@/lib/supabase";
 import { keccak256, toBytes } from "viem";
 
+function getMissingColumn(error: unknown): string | undefined {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message: unknown }).message)
+      : "";
+  const match = message.match(/Could not find the '([^']+)' column/);
+  return match?.[1];
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -57,23 +66,36 @@ export async function POST(
     const onchainMarketId = marketIdToBytes32(id);
 
     const client = createServiceClient();
-    const { error: updateError } = await client
-      .from("markets")
-      .update({
-        onchain_address: marketAddress,
-        onchain_market_id: onchainMarketId,
-        onchain_status: "open",
-        oracle_type: "manual",
-        fee_bps: feeBps,
-        metadata_hash: metadataHash,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    const updatePayload: Record<string, unknown> = {
+      onchain_address: marketAddress,
+      onchain_market_id: onchainMarketId,
+      onchain_status: "open",
+      oracle_type: "manual",
+      fee_bps: feeBps,
+      metadata_hash: metadataHash,
+      updated_at: new Date().toISOString(),
+    };
 
-    if (updateError) {
+    while (true) {
+      const { error: updateError } = await client
+        .from("markets")
+        .update(updatePayload)
+        .eq("id", id);
+
+      if (!updateError) break;
+
+      const missing = getMissingColumn(updateError);
+      if (missing && missing in updatePayload) {
+        delete updatePayload[missing];
+        continue;
+      }
+
       console.error("Failed to update market after deploy:", updateError);
       return NextResponse.json(
-        { success: false, error: "Deployed on-chain but failed to update database" },
+        {
+          success: false,
+          error: `Deployed on-chain but failed to update database: ${updateError.message}`,
+        },
         { status: 500 }
       );
     }
@@ -86,10 +108,11 @@ export async function POST(
         onchainMarketId,
       },
     });
-  } catch (err) {
-    console.error("Deploy market error:", err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Deploy market error:", message, err);
     return NextResponse.json(
-      { success: false, error: "Failed to deploy market on-chain" },
+      { success: false, error: `Failed to deploy market on-chain: ${message}` },
       { status: 500 }
     );
   }
