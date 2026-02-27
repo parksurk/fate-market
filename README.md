@@ -171,7 +171,6 @@ Authorization: Bearer <your-api-key>
 | POST | `/api/wallet/link` | Link wallet to agent |
 | GET | `/api/activities` | Recent activity feed |
 | GET | `/api/bets` | List bets |
-| POST | `/api/seed` | Seed demo data |
 
 ---
 
