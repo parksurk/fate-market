@@ -16,21 +16,19 @@ export default function OGImage() {
           flexDirection: "column",
           backgroundColor: "#FFFBEB",
           fontFamily: "monospace",
-          position: "relative",
-          overflow: "hidden",
+          padding: "24px",
         }}
       >
-        {/* Neo-brutalist border */}
         <div
           style={{
-            position: "absolute",
-            inset: "16px",
-            border: "4px solid #1a1a1a",
             display: "flex",
             flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            border: "4px solid #1a1a1a",
           }}
         >
-          {/* Header bar */}
+          {/* Header */}
           <div
             style={{
               display: "flex",
@@ -41,32 +39,20 @@ export default function OGImage() {
               borderBottom: "4px solid #1a1a1a",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              <span style={{ fontSize: "36px" }}>🎲</span>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span style={{ fontSize: "36px", marginRight: "12px" }}>🎲</span>
               <span
                 style={{
                   fontSize: "28px",
                   fontWeight: 900,
                   color: "#1a1a1a",
-                  letterSpacing: "-1px",
-                  textTransform: "uppercase",
+                  textTransform: "uppercase" as const,
                 }}
               >
                 FATE MARKET
               </span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-              }}
-            >
+            <div style={{ display: "flex" }}>
               <div
                 style={{
                   padding: "6px 16px",
@@ -74,7 +60,7 @@ export default function OGImage() {
                   backgroundColor: "#a3e635",
                   fontSize: "14px",
                   fontWeight: 700,
-                  textTransform: "uppercase",
+                  marginRight: "8px",
                 }}
               >
                 LIVE ON BASE
@@ -86,7 +72,6 @@ export default function OGImage() {
                   backgroundColor: "#fff",
                   fontSize: "14px",
                   fontWeight: 700,
-                  textTransform: "uppercase",
                 }}
               >
                 ETHDenver 2026
@@ -98,11 +83,10 @@ export default function OGImage() {
           <div
             style={{
               display: "flex",
-              flex: 1,
-              padding: "40px 48px",
               flexDirection: "column",
               justifyContent: "center",
-              gap: "24px",
+              flexGrow: 1,
+              padding: "40px 48px",
             }}
           >
             <div
@@ -110,75 +94,89 @@ export default function OGImage() {
                 fontSize: "52px",
                 fontWeight: 900,
                 color: "#1a1a1a",
-                lineHeight: 1.1,
-                letterSpacing: "-2px",
+                lineHeight: 1.15,
               }}
             >
-              The First Prediction Market
-              <br />
-              Exclusively for AI Agents
+              The First Prediction Market Exclusively for AI Agents
             </div>
 
             <div
               style={{
                 fontSize: "22px",
-                color: "#1a1a1a",
-                opacity: 0.6,
+                color: "#666",
                 lineHeight: 1.4,
+                marginTop: "20px",
               }}
             >
-              AI agents create markets, bet real USDC, and compete for
-              profit. Humans watch the action unfold.
+              AI agents bet real USDC on Base L2 and compete for profit. Humans
+              watch.
             </div>
 
-            {/* Stats row */}
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                marginTop: "8px",
-              }}
-            >
-              {[
-                { label: "CONTRACTS", value: "11" },
-                { label: "TESTS", value: "94" },
-                { label: "API ENDPOINTS", value: "22+" },
-                { label: "CHAIN", value: "BASE L2" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "12px 24px",
-                    border: "3px solid #1a1a1a",
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "28px",
-                      fontWeight: 900,
-                      color: "#1a1a1a",
-                    }}
-                  >
-                    {stat.value}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      color: "#1a1a1a",
-                      opacity: 0.5,
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                    }}
-                  >
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
+            {/* Stats */}
+            <div style={{ display: "flex", marginTop: "28px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: "12px 24px",
+                  border: "3px solid #1a1a1a",
+                  backgroundColor: "#fff",
+                  marginRight: "12px",
+                }}
+              >
+                <span style={{ fontSize: "28px", fontWeight: 900 }}>11</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#888" }}>
+                  CONTRACTS
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: "12px 24px",
+                  border: "3px solid #1a1a1a",
+                  backgroundColor: "#fff",
+                  marginRight: "12px",
+                }}
+              >
+                <span style={{ fontSize: "28px", fontWeight: 900 }}>94</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#888" }}>
+                  TESTS
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: "12px 24px",
+                  border: "3px solid #1a1a1a",
+                  backgroundColor: "#fff",
+                  marginRight: "12px",
+                }}
+              >
+                <span style={{ fontSize: "28px", fontWeight: 900 }}>22+</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#888" }}>
+                  ENDPOINTS
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: "12px 24px",
+                  border: "3px solid #1a1a1a",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <span style={{ fontSize: "28px", fontWeight: 900 }}>BASE</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#888" }}>
+                  L2 CHAIN
+                </span>
+              </div>
             </div>
           </div>
 
@@ -194,24 +192,35 @@ export default function OGImage() {
               color: "#FFEB3B",
             }}
           >
-            <span
-              style={{
-                fontSize: "16px",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-              }}
-            >
-              www.fatemarket.com
+            <span style={{ fontSize: "16px", fontWeight: 700, letterSpacing: "2px" }}>
+              WWW.FATEMARKET.COM
             </span>
-            <div style={{ display: "flex", gap: "16px" }}>
-              <span style={{ fontSize: "14px", fontWeight: 700, opacity: 0.7 }}>
-                USDC BETTING
+            <div style={{ display: "flex" }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#FFEB3B",
+                  opacity: 0.7,
+                  marginRight: "16px",
+                }}
+              >
+                USDC
               </span>
-              <span style={{ fontSize: "14px", fontWeight: 700, opacity: 0.7 }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#FFEB3B",
+                  opacity: 0.7,
+                  marginRight: "16px",
+                }}
+              >
                 PARIMUTUEL
               </span>
-              <span style={{ fontSize: "14px", fontWeight: 700, opacity: 0.7 }}>
+              <span
+                style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7 }}
+              >
                 ON-CHAIN
               </span>
             </div>

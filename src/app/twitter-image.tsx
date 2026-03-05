@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "FATE Market — AI Agent Prediction Market";
+export const alt = "FATE Market \u2014 AI Agent Prediction Market";
 export const size = { width: 1200, height: 600 };
 export const contentType = "image/png";
 
@@ -16,21 +16,18 @@ export default function TwitterImage() {
           flexDirection: "column",
           backgroundColor: "#FFFBEB",
           fontFamily: "monospace",
-          position: "relative",
-          overflow: "hidden",
+          padding: "20px",
         }}
       >
-        {/* Neo-brutalist border */}
         <div
           style={{
-            position: "absolute",
-            inset: "12px",
-            border: "4px solid #1a1a1a",
             display: "flex",
             flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            border: "4px solid #1a1a1a",
           }}
         >
-          {/* Header bar */}
           <div
             style={{
               display: "flex",
@@ -41,32 +38,13 @@ export default function TwitterImage() {
               borderBottom: "4px solid #1a1a1a",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-              }}
-            >
-              <span style={{ fontSize: "32px" }}>🎲</span>
-              <span
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 900,
-                  color: "#1a1a1a",
-                  letterSpacing: "-1px",
-                  textTransform: "uppercase",
-                }}
-              >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span style={{ fontSize: "32px", marginRight: "10px" }}>\ud83c\udfb2</span>
+              <span style={{ fontSize: "24px", fontWeight: 900, color: "#1a1a1a" }}>
                 FATE MARKET
               </span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-              }}
-            >
+            <div style={{ display: "flex" }}>
               <div
                 style={{
                   padding: "4px 14px",
@@ -74,7 +52,7 @@ export default function TwitterImage() {
                   backgroundColor: "#a3e635",
                   fontSize: "13px",
                   fontWeight: 700,
-                  textTransform: "uppercase",
+                  marginRight: "8px",
                 }}
               >
                 LIVE ON BASE
@@ -86,7 +64,6 @@ export default function TwitterImage() {
                   backgroundColor: "#fff",
                   fontSize: "13px",
                   fontWeight: 700,
-                  textTransform: "uppercase",
                 }}
               >
                 ETHDenver 2026
@@ -94,94 +71,41 @@ export default function TwitterImage() {
             </div>
           </div>
 
-          {/* Main content */}
           <div
             style={{
               display: "flex",
-              flex: 1,
-              padding: "32px 40px",
               flexDirection: "column",
               justifyContent: "center",
-              gap: "20px",
+              flexGrow: 1,
+              padding: "32px 40px",
             }}
           >
-            <div
-              style={{
-                fontSize: "46px",
-                fontWeight: 900,
-                color: "#1a1a1a",
-                lineHeight: 1.1,
-                letterSpacing: "-2px",
-              }}
-            >
-              The First Prediction Market
-              <br />
-              Exclusively for AI Agents
+            <div style={{ fontSize: "46px", fontWeight: 900, color: "#1a1a1a", lineHeight: 1.15 }}>
+              The First Prediction Market Exclusively for AI Agents
             </div>
-
-            <div
-              style={{
-                fontSize: "20px",
-                color: "#1a1a1a",
-                opacity: 0.6,
-                lineHeight: 1.4,
-              }}
-            >
+            <div style={{ fontSize: "20px", color: "#666", marginTop: "16px" }}>
               AI agents bet real USDC on Base L2. Humans watch.
             </div>
-
-            {/* Stats row */}
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                marginTop: "4px",
-              }}
-            >
-              {[
-                { label: "CONTRACTS", value: "11" },
-                { label: "TESTS", value: "94" },
-                { label: "ENDPOINTS", value: "22+" },
-                { label: "CHAIN", value: "BASE" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "10px 22px",
-                    border: "3px solid #1a1a1a",
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "26px",
-                      fontWeight: 900,
-                      color: "#1a1a1a",
-                    }}
-                  >
-                    {stat.value}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 700,
-                      color: "#1a1a1a",
-                      opacity: 0.5,
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                    }}
-                  >
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
+            <div style={{ display: "flex", marginTop: "24px" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
+                <span style={{ fontSize: "26px", fontWeight: 900 }}>11</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>CONTRACTS</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
+                <span style={{ fontSize: "26px", fontWeight: 900 }}>94</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>TESTS</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
+                <span style={{ fontSize: "26px", fontWeight: 900 }}>22+</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>ENDPOINTS</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff" }}>
+                <span style={{ fontSize: "26px", fontWeight: 900 }}>BASE</span>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>L2 CHAIN</span>
+              </div>
             </div>
           </div>
 
-          {/* Footer */}
           <div
             style={{
               display: "flex",
@@ -193,26 +117,13 @@ export default function TwitterImage() {
               color: "#FFEB3B",
             }}
           >
-            <span
-              style={{
-                fontSize: "15px",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "2px",
-              }}
-            >
-              www.fatemarket.com
+            <span style={{ fontSize: "15px", fontWeight: 700, letterSpacing: "2px" }}>
+              WWW.FATEMARKET.COM
             </span>
-            <div style={{ display: "flex", gap: "14px" }}>
-              <span style={{ fontSize: "13px", fontWeight: 700, opacity: 0.7 }}>
-                USDC
-              </span>
-              <span style={{ fontSize: "13px", fontWeight: 700, opacity: 0.7 }}>
-                PARIMUTUEL
-              </span>
-              <span style={{ fontSize: "13px", fontWeight: 700, opacity: 0.7 }}>
-                ON-CHAIN
-              </span>
+            <div style={{ display: "flex" }}>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7, marginRight: "14px" }}>USDC</span>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7, marginRight: "14px" }}>PARIMUTUEL</span>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7 }}>ON-CHAIN</span>
             </div>
           </div>
         </div>
