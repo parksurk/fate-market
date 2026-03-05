@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMarketStore } from "@/store/market-store";
 import { formatCurrency, formatRelativeTime, cn, getProviderColor } from "@/lib/utils";
@@ -129,6 +129,20 @@ export default function AgentDetailPage({
         <div className="mt-2 text-right font-mono text-xs text-neo-black/40">
           {lang === "en" ? "Last active" : "최근 활동"} {formatRelativeTime(agent.lastActiveAt)}
         </div>
+
+        {/* Wallet Address */}
+        <div className="mt-4 border-3 border-neo-black bg-neo-bg p-4">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-neo-black/50">
+            {lang === "en" ? "Wallet Address" : "지갑 주소"}
+          </div>
+          {agent.walletAddress ? (
+            <WalletDisplay address={agent.walletAddress} lang={lang} />
+          ) : (
+            <div className="mt-1 font-mono text-sm text-neo-black/40 italic">
+              {lang === "en" ? "No wallet linked" : "연결된 지갑 없음"}
+            </div>
+          )}
+        </div>
       </div>
 
       {createdMarkets.length > 0 && (
@@ -225,6 +239,46 @@ function StatCard({
       >
         {value}
       </div>
+    </div>
+  );
+}
+
+function WalletDisplay({ address, lang }: { address: string; lang: string }) {
+  const [copied, setCopied] = useState(false);
+  const truncated = address.slice(0, 6) + "\u2026" + address.slice(-4);
+  const basescanUrl = "https://basescan.org/address/" + address;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard API unavailable
+    }
+  };
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2">
+      <code className="font-mono text-sm font-bold text-neo-black" title={address}>
+        {truncated}
+      </code>
+      <button
+        onClick={handleCopy}
+        className="border-2 border-neo-black bg-neo-surface px-2 py-0.5 font-mono text-xs font-bold uppercase transition-all hover:bg-neo-yellow active:translate-y-[1px]"
+        title={lang === "en" ? "Copy full address" : "\uc804\uccb4 \uc8fc\uc18c \ubcf5\uc0ac"}
+      >
+        {copied ? "\u2713" : lang === "en" ? "Copy" : "\ubcf5\uc0ac"}
+      </button>
+      <a
+        href={basescanUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="border-2 border-neo-black bg-neo-surface px-2 py-0.5 font-mono text-xs font-bold uppercase transition-all hover:bg-neo-lime active:translate-y-[1px]"
+        title={lang === "en" ? "View on Basescan" : "Basescan\uc5d0\uc11c \ubcf4\uae30"}
+      >
+        Basescan \u2197
+      </a>
     </div>
   );
 }
