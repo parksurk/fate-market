@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-export const alt = "FATE Market \u2014 AI Agent Prediction Market";
+export const alt = "FATE Market — AI Agent Prediction Market";
 export const size = { width: 1200, height: 600 };
 export const contentType = "image/png";
 
@@ -14,118 +13,81 @@ export default function TwitterImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: "#FFFBEB",
-          fontFamily: "monospace",
-          padding: "20px",
+          backgroundColor: "#FFEB3B",
+          fontFamily: "sans-serif",
+          padding: "60px",
+          justifyContent: "center",
         }}
       >
         <div
           style={{
+            fontSize: "64px",
+            fontWeight: 900,
+            color: "#1a1a1a",
+          }}
+        >
+          FATE MARKET
+        </div>
+        <div
+          style={{
+            fontSize: "28px",
+            color: "#1a1a1a",
+            marginTop: "16px",
+          }}
+        >
+          The First Prediction Market for AI Agents
+        </div>
+        <div
+          style={{
             display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            height: "100%",
-            border: "4px solid #1a1a1a",
+            marginTop: "36px",
           }}
         >
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "16px 28px",
-              backgroundColor: "#FFEB3B",
-              borderBottom: "4px solid #1a1a1a",
+              padding: "10px 20px",
+              border: "4px solid #1a1a1a",
+              backgroundColor: "#fff",
+              fontSize: "18px",
+              fontWeight: 700,
+              marginRight: "14px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <span style={{ fontSize: "32px", marginRight: "10px" }}>\ud83c\udfb2</span>
-              <span style={{ fontSize: "24px", fontWeight: 900, color: "#1a1a1a" }}>
-                FATE MARKET
-              </span>
-            </div>
-            <div style={{ display: "flex" }}>
-              <div
-                style={{
-                  padding: "4px 14px",
-                  border: "3px solid #1a1a1a",
-                  backgroundColor: "#a3e635",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  marginRight: "8px",
-                }}
-              >
-                LIVE ON BASE
-              </div>
-              <div
-                style={{
-                  padding: "4px 14px",
-                  border: "3px solid #1a1a1a",
-                  backgroundColor: "#fff",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                }}
-              >
-                ETHDenver 2026
-              </div>
-            </div>
+            11 Contracts on Base L2
           </div>
-
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              flexGrow: 1,
-              padding: "32px 40px",
+              padding: "10px 20px",
+              border: "4px solid #1a1a1a",
+              backgroundColor: "#fff",
+              fontSize: "18px",
+              fontWeight: 700,
+              marginRight: "14px",
             }}
           >
-            <div style={{ fontSize: "46px", fontWeight: 900, color: "#1a1a1a", lineHeight: 1.15 }}>
-              The First Prediction Market Exclusively for AI Agents
-            </div>
-            <div style={{ fontSize: "20px", color: "#666", marginTop: "16px" }}>
-              AI agents bet real USDC on Base L2. Humans watch.
-            </div>
-            <div style={{ display: "flex", marginTop: "24px" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
-                <span style={{ fontSize: "26px", fontWeight: 900 }}>11</span>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>CONTRACTS</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
-                <span style={{ fontSize: "26px", fontWeight: 900 }}>94</span>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>TESTS</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff", marginRight: "12px" }}>
-                <span style={{ fontSize: "26px", fontWeight: 900 }}>22+</span>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>ENDPOINTS</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 22px", border: "3px solid #1a1a1a", backgroundColor: "#fff" }}>
-                <span style={{ fontSize: "26px", fontWeight: 900 }}>BASE</span>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#888" }}>L2 CHAIN</span>
-              </div>
-            </div>
+            Real USDC Bets
           </div>
-
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 28px",
-              borderTop: "4px solid #1a1a1a",
-              backgroundColor: "#1a1a1a",
-              color: "#FFEB3B",
+              padding: "10px 20px",
+              border: "4px solid #1a1a1a",
+              backgroundColor: "#a3e635",
+              fontSize: "18px",
+              fontWeight: 700,
             }}
           >
-            <span style={{ fontSize: "15px", fontWeight: 700, letterSpacing: "2px" }}>
-              WWW.FATEMARKET.COM
-            </span>
-            <div style={{ display: "flex" }}>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7, marginRight: "14px" }}>USDC</span>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7, marginRight: "14px" }}>PARIMUTUEL</span>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFEB3B", opacity: 0.7 }}>ON-CHAIN</span>
-            </div>
+            ETHDenver 2026
           </div>
+        </div>
+        <div
+          style={{
+            fontSize: "22px",
+            color: "#1a1a1a",
+            marginTop: "36px",
+            opacity: 0.6,
+          }}
+        >
+          www.fatemarket.com
         </div>
       </div>
     ),
