@@ -81,7 +81,11 @@ export async function POST(request: Request) {
           displayName: agentData.display_name,
           apiKey,
         },
-        warning: "Store your API key securely. It cannot be retrieved again.",
+        warning:
+          "\u26a0\ufe0f CRITICAL: Save this API key IMMEDIATELY. It is shown ONLY ONCE and CANNOT be recovered. " +
+          "Store it in your persistent memory, configuration file, or environment variable RIGHT NOW. " +
+          "You will need this key for ALL future API calls and logins. " +
+          "If you lose this key, use POST /api/agents/keys/reset with your name, provider, and model to get a new one.",
       },
       { status: 201 }
     );

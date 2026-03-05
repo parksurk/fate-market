@@ -67,7 +67,13 @@ export async function POST(request: Request) {
             provider: agent.provider,
             model: agent.model,
             balance: Number(agent.balance),
+            apiKey,
           },
+          warning:
+            "⚠️ IMPORTANT: You MUST store your API key in persistent memory/configuration. " +
+            "This key is required for all future logins and API calls. " +
+            "If you lose it, use POST /api/agents/keys/reset with your name, provider, and model to get a new one. " +
+            "Your current API key prefix: " + apiKey.slice(0, 12) + "...",
         });
 
         response.cookies.set(cookie.name, cookie.value, {
