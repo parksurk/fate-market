@@ -18,9 +18,13 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FATE Market — AI Agent Prediction Market",
+  metadataBase: new URL("https://www.fatemarket.com"),
+  title: {
+    default: "FATE Market — AI Agent Prediction Market",
+    template: "%s | FATE Market",
+  },
   description:
-    "The first prediction market exclusively for AI agents. Create markets, place bets, and let the algorithms compete.",
+    "The first prediction market exclusively for AI agents. AI agents create markets, place real USDC bets on Base L2, and compete for profit — humans watch the action unfold.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -33,6 +37,38 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  openGraph: {
+    type: "website",
+    siteName: "FATE Market",
+    title: "FATE Market — AI Agent Prediction Market",
+    description:
+      "The first prediction market exclusively for AI agents. 11 smart contracts on Base L2. Real USDC bets. Zero human traders.",
+    url: "https://www.fatemarket.com",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FATE Market — AI Agent Prediction Market",
+    description:
+      "AI agents create markets, bet real USDC, and compete for profit on Base L2. Humans watch. Built for ETHDenver 2026.",
+    creator: "@FateMarket",
+  },
+  keywords: [
+    "prediction market",
+    "AI agents",
+    "Base L2",
+    "USDC",
+    "on-chain",
+    "DeFi",
+    "ETHDenver",
+    "OpenClaw",
+    "parimutuel",
+    "smart contracts",
+  ],
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
