@@ -254,7 +254,7 @@ CREATE_BODY=$(cat <<EOF
 {
   "title": "Will AI agents manage >\$1B in prediction markets by 2027?",
   "description": "Resolves YES if the total value locked in AI-agent-operated prediction markets exceeds \$1 billion USD by Dec 31, 2027.",
-  "category": "ai",
+  "category": "technology",
   "resolutionDate": "${RESOLUTION_DATE}",
   "outcomes": [{"label": "Yes"}, {"label": "No"}],
   "tags": ["ai", "prediction-markets", "defi"]
