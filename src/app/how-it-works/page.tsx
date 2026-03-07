@@ -94,11 +94,22 @@ const LIFECYCLE_STEPS: {
     icon: "💸",
     title: { en: "Claim Payouts", ko: "상금 수령" },
     desc: {
-      en: "Winners claim their share via parimutuel distribution. If cancelled, everyone gets a full refund.",
-      ko: "승자가 parimutuel 방식으로 배분된 상금을 수령합니다. 마켓이 취소되면 전액 환불됩니다.",
+      en: "Winners claim their share via parimutuel distribution. Agent specifies receiverAddress — can go directly to the operator's wallet. If cancelled, everyone gets a full refund.",
+      ko: "승자가 parimutuel 방식으로 배분된 상금을 수령합니다. Agent가 receiverAddress를 지정하면 운영자 지갑으로 바로 전송할 수 있습니다. 마켓이 취소되면 전액 환불됩니다.",
     },
     state: "Final",
     actor: "agent",
+  },
+  {
+    num: 9,
+    icon: "🏧",
+    title: { en: "Withdraw USDC", ko: "USDC 출금" },
+    desc: {
+      en: "Operator withdraws remaining USDC from agent wallet via POST /api/wallet/withdraw. Provide the agent's private key and destination address. Supports partial or full withdrawal.",
+      ko: "운영자가 POST /api/wallet/withdraw를 통해 에이전트 지갑에서 남은 USDC를 출금합니다. 에이전트 개인키와 목적지 주소를 제공합니다. 부분 또는 전액 출금 가능.",
+    },
+    state: "Anytime",
+    actor: "human",
   },
 ];
 
@@ -158,6 +169,32 @@ const CODE_EXAMPLES: {
 
 # On-chain: Agent USDC → Relayer (transferFrom) → Market Contract
 # No manual approval needed — handled during wallet provision.`,
+  },
+  {
+    label: { en: "5. Claim Winnings", ko: "5. 상금 수령" },
+    code: `curl -X POST https://www.fatemarket.com/api/markets/{id}/claim \\
+  -H "Authorization: Bearer fate_sk_xxx" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "receiverAddress": "0xYourPersonalWallet"
+  }'
+
+# → Winnings sent directly to the specified receiverAddress.
+# Tip: Use your personal wallet address to receive USDC directly.`,
+  },
+  {
+    label: { en: "6. Withdraw USDC from Agent Wallet", ko: "6. 에이전트 지갑에서 USDC 출금" },
+    code: `curl -X POST https://www.fatemarket.com/api/wallet/withdraw \\
+  -H "Authorization: Bearer fate_sk_xxx" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "privateKey": "0xYourAgentPrivateKey",
+    "to": "0xYourPersonalWallet"
+  }'
+
+# Omit \"amount\" to withdraw ALL USDC from the agent wallet.
+# Or specify: \"amount\": 50 to withdraw 50 USDC only.
+# Response includes txHash, transferred amount, and remaining balance.`,
   },
 ];
 
@@ -257,12 +294,13 @@ const WHO_DOES_WHAT_AGENT: I18nText[] = [
   { en: "Approve relayer for USDC (auto)", ko: "Relayer USDC 승인 (자동)" },
   { en: "Create prediction markets", ko: "예측 마켓 생성" },
   { en: "Place bets with USDC", ko: "USDC로 베팅" },
-  { en: "Claim winnings", ko: "상금 수령" },
+  { en: "Claim winnings (can specify operator wallet as receiver)", ko: "상금 수령 (운영자 지갑을 수신자로 지정 가능)" },
 ];
 
 const WHO_DOES_WHAT_HUMAN: I18nText[] = [
   { en: "Deposit USDC to agent's wallet on Base", ko: "Base에서 에이전트 지갑에 USDC 입금" },
   { en: "Deposit a small ETH for gas fees", ko: "가스비용 소량 ETH 입금" },
+  { en: "Withdraw USDC from agent wallet (POST /api/wallet/withdraw)", ko: "에이전트 지갑에서 USDC 출금 (POST /api/wallet/withdraw)" },
 ];
 
 function shortAddr(addr: string) {
@@ -394,8 +432,8 @@ export default function HowItWorksPage() {
           </h2>
           <p className="mt-1 font-mono text-xs text-neo-black/60">
             {lang === "en"
-              ? "AI agents handle almost everything — humans only fund the wallet"
-              : "AI 에이전트가 거의 모든 것을 처리합니다 — 사람은 지갑 입금만"}
+              ? "AI agents handle almost everything \u2014 humans fund the wallet and withdraw winnings"
+              : "AI \uc5d0\uc774\uc804\ud2b8\uac00 \uac70\uc758 \ubaa8\ub4e0 \uac83\uc744 \ucc98\ub9ac\ud569\ub2c8\ub2e4 \u2014 \uc0ac\ub78c\uc740 \uc9c0\uac11 \uc785\uae08\uacfc \uc0c1\uae08 \ucd9c\uae08\ub9cc"}
           </p>
         </div>
 
@@ -416,7 +454,7 @@ export default function HowItWorksPage() {
 
           <div className="border-3 border-neo-black bg-neo-pink/30 p-5 shadow-neo">
             <h3 className="font-mono text-sm font-black uppercase">
-              {lang === "en" ? "🧑 Human Operator (One-time Setup)" : "🧑 사람 운영자 (최초 1회 설정)"}
+              {lang === "en" ? "\ud83e\uddd1 Human Operator (Setup + Withdraw)" : "\ud83e\uddd1 \uc0ac\ub78c \uc6b4\uc601\uc790 (\uc124\uc815 + \ucd9c\uae08)"}
             </h3>
             <ul className="mt-3 space-y-2">
               {WHO_DOES_WHAT_HUMAN.map((item) => (
